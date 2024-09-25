@@ -62,7 +62,6 @@ A curated list of paper, methods and libraries implemented in Python for transfo
 
 ### Reading Content
 
-* [Convert sparse tabular data to a condensed representation in an image format](https://towardsdatascience.com/turning-non-image-data-into-images-for-classification-is-surprisingly-effective-70ce82cfee27)
 
 ### Videos and Online Courses
 [Back to Top](#contents)
