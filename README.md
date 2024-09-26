@@ -56,7 +56,7 @@ A curated list of paper, methods and libraries implemented in Python for transfo
 - [TabSyn](https://github.com/amazon-science/tabsyn) - Mixed-Type Tabular Data Synthesis with Score-based Diffusion in Latent Space.
 - [CoDi](https://github.com/ChaejeongLee/CoDi) - CoDi: Co-evolving Contrastive Diffusion Models for Mixed-type Tabular Synthesis.
 - [synthcity](https://github.com/vanderschaarlab/synthcity) - Synthetic data generation platform for privacy-preserving machine learning, focusing on tabular, time series, and survival data.
-- [GenerativeMTD](https://github.com/jsivaku1/GenerativeMTD) - Generative models for missing tabular data imputation and oversampling using GANs.
+- [GenerativeMTD](https://github.com/jsivaku1/GenerativeMTD) - GenerativeMTD: A deep synthetic data generation framework for small datasets.
 
 ## Tutorials
 [Back to Top](#contents)
