@@ -1,1 +1,15 @@
 .idea/
+
+# Model files
+*.pt
+
+# PyTorch checkpoint files
+*.ckpt
+
+# Checkpoints directory and any folder named ckpt
+ckpt/
+**/ckpt/
+
+# __pycache__ directories
+__pycache__/
+**/__pycache__/
