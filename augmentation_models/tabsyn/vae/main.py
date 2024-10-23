@@ -17,6 +17,7 @@ from utils_train import preprocess, TabularDataset
 
 warnings.filterwarnings('ignore')
 
+<<<<<<< HEAD
 token_bias = True
 
 
@@ -24,6 +25,17 @@ def write_params_to_file(params, file_path):
     with open(file_path, 'w') as f:
         for key, value in params.items():
             f.write(f'{key}: {value}\n')
+=======
+
+LR = 1e-3
+WD = 0
+D_TOKEN = 4
+TOKEN_BIAS = True
+
+N_HEAD = 1
+FACTOR = 32
+NUM_LAYERS = 2
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
 
 def compute_loss(X_num, X_cat, Recon_X_num, Recon_X_cat, mu_z, logvar_z):
@@ -51,15 +63,19 @@ def compute_loss(X_num, X_cat, Recon_X_num, Recon_X_cat, mu_z, logvar_z):
 
 
 def main(args):
+<<<<<<< HEAD
     
     datetime = time.strftime('%Y-%m-%d-%H-%M-%S')
     
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     dataname = args.dataname
     data_dir = f'data/{dataname}'
 
     max_beta = args.max_beta
     min_beta = args.min_beta
     lambd = args.lambd
+<<<<<<< HEAD
     
     lr = args.lr
     wd = args.wd
@@ -91,6 +107,11 @@ def main(args):
     }
     
     print(params)
+=======
+
+    device =  args.device
+
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
     info_path = f'data/{dataname}/info.json'
 
@@ -98,19 +119,29 @@ def main(args):
         info = json.load(f)
 
     curr_dir = os.path.dirname(os.path.abspath(__file__))
+<<<<<<< HEAD
     ckpt_dir = f'{curr_dir}/ckpt/{dataname}/{datetime}' 
     if not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
 
     write_params_to_file(params, f'{ckpt_dir}/params.txt')
 
+=======
+    ckpt_dir = f'{curr_dir}/ckpt/{dataname}' 
+    if not os.path.exists(ckpt_dir):
+        os.makedirs(ckpt_dir)
+
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     model_save_path = f'{ckpt_dir}/model.pt'
     encoder_save_path = f'{ckpt_dir}/encoder.pt'
     decoder_save_path = f'{ckpt_dir}/decoder.pt'
 
     X_num, X_cat, categories, d_numerical = preprocess(data_dir, task_type = info['task_type'])
+<<<<<<< HEAD
     
     print(categories) # number of cats per categorical feature
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
     X_train_num, _ = X_num
     X_train_cat, _ = X_cat
@@ -126,10 +157,15 @@ def main(args):
 
     X_test_num = X_test_num.float().to(device)
     X_test_cat = X_test_cat.to(device)
+<<<<<<< HEAD
     
     if batch_size > X_train_num.shape[0]:
         batch_size = X_train_num.shape[0]
 
+=======
+
+    batch_size = 4096
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     train_loader = DataLoader(
         train_data,
         batch_size = batch_size,
@@ -137,25 +173,43 @@ def main(args):
         num_workers = 4,
     )
 
+<<<<<<< HEAD
     model = Model_VAE(num_layers, d_numerical, categories, d_token, n_head = n_head, factor = factor, bias = True)
     model = model.to(device)
 
     pre_encoder = Encoder_model(num_layers, d_numerical, categories, d_token, n_head = n_head, factor = factor).to(device)
     pre_decoder = Decoder_model(num_layers, d_numerical, categories, d_token, n_head = n_head, factor = factor).to(device)
+=======
+    model = Model_VAE(NUM_LAYERS, d_numerical, categories, D_TOKEN, n_head = N_HEAD, factor = FACTOR, bias = True)
+    model = model.to(device)
+
+    pre_encoder = Encoder_model(NUM_LAYERS, d_numerical, categories, D_TOKEN, n_head = N_HEAD, factor = FACTOR).to(device)
+    pre_decoder = Decoder_model(NUM_LAYERS, d_numerical, categories, D_TOKEN, n_head = N_HEAD, factor = FACTOR).to(device)
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
     pre_encoder.eval()
     pre_decoder.eval()
 
+<<<<<<< HEAD
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.95, patience=10, verbose=True)
 
+=======
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WD)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.95, patience=10, verbose=True)
+
+    num_epochs = 4000
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     best_train_loss = float('inf')
 
     current_lr = optimizer.param_groups[0]['lr']
     patience = 0
 
+<<<<<<< HEAD
     best_val_loss = float('inf')
 
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     beta = max_beta
     start_time = time.time()
     for epoch in range(num_epochs):
@@ -204,6 +258,7 @@ def main(args):
             val_mse_loss, val_ce_loss, val_kl_loss, val_acc = compute_loss(X_test_num, X_test_cat, Recon_X_num, Recon_X_cat, mu_z, std_z)
             val_loss = val_mse_loss.item() * 0 + val_ce_loss.item()    
 
+<<<<<<< HEAD
             # Check for improvement
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -216,6 +271,8 @@ def main(args):
                     
                     break  # Stop training if patience is exceeded
 
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
             scheduler.step(val_loss)
             new_lr = optimizer.param_groups[0]['lr']
 
@@ -261,6 +318,10 @@ def main(args):
         print('Successfully save pretrained embeddings in disk!')
 
 if __name__ == '__main__':
+<<<<<<< HEAD
+=======
+
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     parser = argparse.ArgumentParser(description='Variational Autoencoder')
 
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset.')
@@ -269,6 +330,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_beta', type=float, default=1e-5, help='Minimum Beta.')
     parser.add_argument('--lambd', type=float, default=0.7, help='Decay of Beta.')
 
+<<<<<<< HEAD
     # Add the following hyperparameters
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate.')
     parser.add_argument('--wd', type=float, default=0.0, help='Weight decay.')
@@ -291,3 +353,12 @@ if __name__ == '__main__':
         args.device = 'cpu'
 
     main(args)
+=======
+    args = parser.parse_args()
+
+    # check cuda
+    if args.gpu != -1 and torch.cuda.is_available():
+        args.device = 'cuda:{}'.format(args.gpu)
+    else:
+        args.device = 'cpu'
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9

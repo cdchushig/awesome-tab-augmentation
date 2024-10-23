@@ -11,13 +11,17 @@ from tqdm import tqdm
 from tabsyn.model import MLPDiffusion, Model
 from tabsyn.latent_utils import get_input_train
 
+<<<<<<< HEAD
 from torch.utils.tensorboard import SummaryWriter
 
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 warnings.filterwarnings('ignore')
 
 
 def main(args): 
     device = args.device
+<<<<<<< HEAD
     batch_size = args.batch_size
     num_epochs = args.num_epochs
     early_stopping_patience = 500
@@ -30,6 +34,8 @@ def main(args):
     }
     
     print(params)
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
     train_z, _, _, ckpt_path, _ = get_input_train(args)
 
@@ -45,16 +51,27 @@ def main(args):
     train_z = (train_z - mean) / 2
     train_data = train_z
 
+<<<<<<< HEAD
     if batch_size > len(train_data):
         batch_size = len(train_data)
 
+=======
+
+    batch_size = 4096
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     train_loader = DataLoader(
         train_data,
         batch_size = batch_size,
         shuffle = True,
         num_workers = 4,
     )
+<<<<<<< HEAD
         
+=======
+
+    num_epochs = 10000 + 1
+
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
     denoise_fn = MLPDiffusion(in_dim, 1024).to(device)
     print(denoise_fn)
 
@@ -63,6 +80,7 @@ def main(args):
 
     model = Model(denoise_fn = denoise_fn, hid_dim = train_z.shape[1]).to(device)
 
+<<<<<<< HEAD
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=50, verbose=True)
     
@@ -77,6 +95,17 @@ def main(args):
     patience = 0
     start_time = time.time()
     for i, epoch in enumerate(range(num_epochs)):
+=======
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=20, verbose=True)
+
+    model.train()
+
+    best_loss = float('inf')
+    patience = 0
+    start_time = time.time()
+    for epoch in range(num_epochs):
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
         
         pbar = tqdm(train_loader, total=len(train_loader))
         pbar.set_description(f"Epoch {epoch+1}/{num_epochs}")
@@ -97,6 +126,7 @@ def main(args):
             optimizer.step()
 
             pbar.set_postfix({"Loss": loss.item()})
+<<<<<<< HEAD
         
         curr_loss = batch_loss/len_input
         scheduler.step(curr_loss)
@@ -124,6 +154,27 @@ def main(args):
     end_time = time.time()
     print('Time: ', end_time - start_time)
     writer.close()
+=======
+
+        curr_loss = batch_loss/len_input
+        scheduler.step(curr_loss)
+
+        if curr_loss < best_loss:
+            best_loss = curr_loss
+            patience = 0
+            torch.save(model.state_dict(), f'{ckpt_path}/model.pt')
+        else:
+            patience += 1
+            if patience == 500:
+                print('Early stopping')
+                break
+
+        if epoch % 1000 == 0:
+            torch.save(model.state_dict(), f'{ckpt_path}/model_{epoch}.pt')
+
+    end_time = time.time()
+    print('Time: ', end_time - start_time)
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
 if __name__ == '__main__':
 
@@ -131,9 +182,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset.')
     parser.add_argument('--gpu', type=int, default=0, help='GPU index.')
+<<<<<<< HEAD
     parser.add_argument('--num_epochs', type=int, default=1000, help='Number of epochs.')
     parser.add_argument('--batch_size', type=int, default=4096, help='batch size')
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
+=======
+>>>>>>> 67c1c4bce1a9ddf97bbb601dcbeb8ca17626cbd9
 
     args = parser.parse_args()
 
