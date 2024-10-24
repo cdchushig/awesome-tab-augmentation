@@ -129,11 +129,15 @@ def train_val_test_split(data_df, cat_columns, num_train = 0, num_test = 0):
         train_df = data_df.loc[train_idx]
         test_df = data_df.loc[test_idx]
 
-
-
         flag = 0
         for i in cat_columns:
             if len(set(train_df[i])) != len(set(data_df[i])):
+                # print the category not in training set
+                data_cat = set(data_df[i])
+                train_cat = set(train_df[i])
+                for cat in data_cat:
+                    if cat not in train_cat:
+                        print(i, cat)
                 flag = 1
                 break
 
@@ -199,11 +203,7 @@ def process_data(name):
         
         num_train = int(num_data*0.9)
         num_test = num_data - num_train
-        train_df, test_df, seed = train_val_test_split(data_df, cat_columns, num_train, num_test)
-    
-    
-
-            
+        train_df, test_df, seed = train_val_test_split(data_df, cat_columns, num_train, num_test)            
 
     train_df.columns = range(len(train_df.columns))
     test_df.columns = range(len(test_df.columns))
@@ -347,7 +347,7 @@ if __name__ == "__main__":
     if args.dataname:
         process_data(args.dataname)
     else:
-        for name in ['adult', 'default', 'shoppers', 'magic', 'beijing', 'news', 'thoracic_surgery']:    
+        for name in ['thoracic_surgery', 'diabetes', 'retinopathy', 'heart']:
             print(f'Processing {name}...')
             process_data(name)
 

@@ -1,15 +1,10 @@
 {
-    "name": "diabetes",
+    "name": "retinopathy",
     "task_type": "binclass",
     "header": "infer",
     "column_names": null,
     "num_col_idx": [
-        1,
         2,
-        15
-    ],
-    "cat_col_idx": [
-        0,
         3,
         4,
         5,
@@ -22,12 +17,20 @@
         12,
         13,
         14,
-        16
+        15,
+        16,
+        17
+    ],
+    "cat_col_idx": [
+        0,
+        1,
+        18,
+        19
     ],
     "target_col_idx": [
-        16
+        9
     ],
     "file_type": "csv",
-    "data_path": "data/thoracic_surgery/thoracic_surgery.csv",
+    "data_path": "data/retinopathy/diabetic_retinopathy.csv",
     "test_path": null
 }

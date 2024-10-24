@@ -1,0 +1,32 @@
+{
+    "name": "heart",
+    "task_type": "binclass",
+    "header": "infer",
+    "column_names": null,
+    "num_col_idx": [
+        1,
+        4,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+    ],
+    "cat_col_idx": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        15
+    ],
+    "target_col_idx": [
+        15
+    ],
+    "file_type": "csv",
+    "data_path": "data/heart/heart.csv",
+    "test_path": null
+}
