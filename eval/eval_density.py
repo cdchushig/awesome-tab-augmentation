@@ -69,7 +69,7 @@ if __name__ == '__main__':
     else:
         syn_path = args.path
 
-    real_path = f'/home/pcrespo/repos/tabsyn/data/adult/adult.csv'
+    real_path = f'synthetic/{dataname}/real.csv'
 
     data_dir = f'data/{dataname}' 
     print(syn_path)
