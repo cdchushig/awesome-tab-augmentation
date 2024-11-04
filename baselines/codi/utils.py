@@ -3,8 +3,8 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 
-def warmup_lr(step):
-    return min(step, 5000) / 5000
+def warmup_lr(step, warmup_steps=2000):
+    return min(step, warmup_steps) / warmup_steps  # Linear increase during warm-up
 
 def infiniteloop(dataloader):
     while True:

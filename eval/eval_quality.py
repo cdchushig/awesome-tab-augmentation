@@ -121,7 +121,6 @@ if __name__ == '__main__':
     le_real_num = pd.DataFrame(num_real_data_np).astype(float)
     le_real_cat = pd.DataFrame(cat_real_data_oh).astype(float)
 
-
     le_syn_data = pd.DataFrame(np.concatenate((num_syn_data_np, cat_syn_data_oh), axis = 1)).astype(float)
     le_syn_num = pd.DataFrame(num_syn_data_np).astype(float)
     le_syn_cat = pd.DataFrame(cat_syn_data_oh).astype(float)
@@ -129,14 +128,15 @@ if __name__ == '__main__':
     np.set_printoptions(precision=4)
 
     result = []
-
-    print('=========== All Features ===========')
-    print('Data shape: ', le_syn_data.shape)
-
+    
     X_syn_loader = GenericDataLoader(le_syn_data)
     X_real_loader = GenericDataLoader(le_real_data)
 
     quality_evaluator = eval_statistical.AlphaPrecision()
+    
+    print(f"Real data shape: {le_real_data.shape}")
+    print(f"Synthetic data shape: {le_syn_data.shape}")
+    
     qual_res = quality_evaluator.evaluate(X_real_loader, X_syn_loader)
     qual_res = {
         k: v for (k, v) in qual_res.items() if "naive" in k
@@ -153,5 +153,5 @@ if __name__ == '__main__':
         os.makedirs(save_dir)
 
     with open(f'{save_dir}/{model}.txt', 'w') as f:
-        f.write(f'{Alpha_Precision_all}\n')
-        f.write(f'{Beta_Recall_all}\n')
+        f.write(f'alpha precision: {Alpha_Precision_all}\n')
+        f.write(f'beta recall: {Beta_Recall_all}\n')

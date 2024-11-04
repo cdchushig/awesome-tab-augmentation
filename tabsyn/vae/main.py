@@ -19,7 +19,6 @@ warnings.filterwarnings('ignore')
 
 token_bias = True
 
-
 def write_params_to_file(params, file_path):
     with open(file_path, 'w') as f:
         for key, value in params.items():
@@ -98,7 +97,7 @@ def main(args):
         info = json.load(f)
 
     curr_dir = os.path.dirname(os.path.abspath(__file__))
-    ckpt_dir = f'{curr_dir}/ckpt/{dataname}/{datetime}' 
+    ckpt_dir = f'{curr_dir}/ckpt/{dataname}' 
     if not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
 
@@ -120,7 +119,6 @@ def main(args):
 
     X_train_num, X_test_num = torch.tensor(X_train_num).float(), torch.tensor(X_test_num).float()
     X_train_cat, X_test_cat =  torch.tensor(X_train_cat), torch.tensor(X_test_cat)
-
 
     train_data = TabularDataset(X_train_num.float(), X_train_cat)
 
@@ -252,7 +250,7 @@ def main(args):
         X_train_num = X_train_num.to(device)
         X_train_cat = X_train_cat.to(device)
 
-        print('Successfully load and save the model!')
+        print(f'Successfully load and save the model to {encoder_save_path} and {decoder_save_path}')
 
         train_z = pre_encoder(X_train_num, X_train_cat).detach().cpu().numpy()
 

@@ -16,6 +16,7 @@ def execute_function(method, mode):
         module_name = f"baselines.{method}.{mode}"
 
     try:
+        print(f"Importing module: {module_name}")
         train_module = importlib.import_module(module_name)
         train_function = getattr(train_module, 'main')
     except ModuleNotFoundError:
@@ -77,6 +78,15 @@ def get_args():
                         help='Select a discrete column name.')
     parser.add_argument('--sample_condition_column_value', default=None, type=str,
                         help='Specify the value of the selected discrete column.')
+
+   
+    ''' configs for GANOS '''
+       
+    parser.add_argument('--gp_weight', type=float, default=10.0, help='Gradient penalty weight')
+    parser.add_argument('--d_updates_per_g', type=int, default=3, help='Number of discriminator updates per generator update')
+    parser.add_argument('--num_cols', type=int, default=0, help='Number of columns')
+    parser.add_argument('--cat_dims', type=str, default='', help='Number of categories per categorical feature')
+    parser.add_argument('--model_dir', type=str, default='model', help='Model directory')
 
     ''' configs for GReaT '''
 
@@ -147,7 +157,7 @@ def get_args():
     parser.add_argument('--d_token', type=int, default=4, help='Dimension of tokens.')
     parser.add_argument('--n_head', type=int, default=1, help='Number of heads.')
     parser.add_argument('--factor', type=int, default=32, help='Factor for the model.')
-
+    parser.add_argument('--model_version' , type=str, default='', help='datatimte of the model version')
 
     # configs for sampling
     parser.add_argument('--save_path', type=str, default=None, help='Path to save synthetic data.')

@@ -94,9 +94,13 @@ if __name__ == '__main__':
 
     qual_report = QualityReport()
     qual_report.generate(new_real_data, new_syn_data, metadata)
+    
+    print(qual_report.get_properties())
 
     diag_report = DiagnosticReport()
     diag_report.generate(new_real_data, new_syn_data, metadata)
+
+    print(diag_report.get_properties())
 
     quality =  qual_report.get_properties()
     diag = diag_report.get_properties()
@@ -105,8 +109,8 @@ if __name__ == '__main__':
     Trend = quality['Score'][1]
 
     with open(f'{save_dir}/quality.txt', 'w') as f:
-        f.write(f'{Shape}\n')
-        f.write(f'{Trend}\n')
+        f.write(f'Shape Score: {Shape}\n')
+        f.write(f'Trend Score: {Trend}\n')
 
     Quality = (Shape + Trend) / 2
 
