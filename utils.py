@@ -138,6 +138,14 @@ def get_args():
     # configs for TabDDPM
     parser.add_argument('--ddim', action = 'store_true', default=False, help='Whether use DDIM sampler')
 
+    # configs for findiff
+    parser.add_argument('--cat_emb_dim', type=int, default=2, help='Dimension of categorical embeddings.')
+    parser.add_argument('--mlp_layers', nargs='+', type=int, default=[1024, 1024, 1024, 1024], help='MLP layer sizes.')
+    parser.add_argument('--diff_steps', type=int, default=500, help='Number of diffusion steps.')
+    parser.add_argument('--beta_start', type=float, default=1e-4, help='Initial beta for diffusion.')
+    parser.add_argument('--beta_end', type=float, default=0.02, help='Final beta for diffusion.')
+    parser.add_argument('--scheduler', type=str, default='linear', help='Scheduler type for the diffusion process.')
+
     # configs for SMOTE
     parser.add_argument('--cat_encoding', type=str, default='one-hot', help='Encoding method for categorical features')
 
