@@ -74,7 +74,8 @@ class MLPSynthesizer(nn.Module):
             n_cat_emb=None,
             embedding=None, 
             embedding_learned=True, 
-            n_classes=None
+            n_classes=None,
+            save_dir=None
         ):
         """ Constructor for initializing the synthesizer
 
@@ -102,6 +103,11 @@ class MLPSynthesizer(nn.Module):
         if n_classes is not None:
             self.label_emb = nn.Embedding(n_classes, dim_t)
 
+
+        print('Synthesizer initialized with MLP layers:', hidden_layers)
+        print("In dimensions:", d_in, "Out dimensions:", d_in)
+        print("t dimensions:", dim_t)
+
         # projection used for the input data
         self.proj = nn.Sequential(
             nn.Linear(d_in, dim_t),
@@ -118,6 +124,8 @@ class MLPSynthesizer(nn.Module):
         
         # used for the output layer
         self.head = nn.Linear(hidden_layers[-1], d_in)
+        
+        self.save_dir = save_dir
 
     def get_embeddings(self):
         """ Extract embedding vectors 

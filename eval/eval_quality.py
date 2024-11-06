@@ -66,6 +66,15 @@ if __name__ == '__main__':
     cat_real_data_np = cat_real_data.to_numpy().astype('str')
         
 
+    # print shapes of real and synthetic data
+    print(f"Real data shape: {real_data.shape}")
+    print(f"Synthetic data shape: {syn_data.shape}")
+    
+    # print indeces
+    print(f"Numerical column indices: {num_col_idx}")
+    print(f"Categorical column indices: {cat_col_idx}")
+    print(f"Target column index: {target_col_idx}")
+
     num_syn_data = syn_data[num_col_idx]
     cat_syn_data = syn_data[cat_col_idx]
 

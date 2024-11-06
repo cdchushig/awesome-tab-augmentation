@@ -5,7 +5,7 @@ from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder, QuantileTransformer
 from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
-
+from datetime import datetime
 
 def train_epoch(
         dataloader,
@@ -234,10 +234,7 @@ def train_model(model, diffuser, dataloader, optimizer, scheduler, loss_fn, epoc
             batch_cat_emb = model.embed_categorical(x_cat=batch_cat)
             batch_cat_num = torch.cat((batch_cat_emb, batch_num), dim=1)
             batch_noise_t, noise_t = diffuser.add_gauss_noise(x_num=batch_cat_num, t=timesteps)                        
-                        
-            # print shapes of the model
-            print(model.proj)
-            
+                                    
             predicted_noise = model(x=batch_noise_t, timesteps=timesteps, label=batch_y)
             batch_loss = loss_fn(input=noise_t, target=predicted_noise)
 
@@ -252,6 +249,12 @@ def train_model(model, diffuser, dataloader, optimizer, scheduler, loss_fn, epoc
         train_epoch_losses.append(batch_losses_mean)
         now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         pbar.set_description(f'[LOG {now}] epoch: {epoch:04}, train-loss: {batch_losses_mean:.4f}')
+    
+    # Save the trained models
+    mlp_path = f'{diffuser.save_dir}/mlp_model.pt'
+    torch.save(model.state_dict(), mlp_path)
+    diffuser.save_model()
+    print(f"MLP model saved at {mlp_path}")     
 
     return train_epoch_losses
 
@@ -279,7 +282,7 @@ def generate_samples(model, diffuser, encoded_dim, label_torch, diffusion_steps,
             samples = diffuser.p_sample_gauss(model_out, samples, timesteps)
     return samples.detach().cpu().numpy()
 
-def decode_samples(samples, cat_dim, num_scaler, vocab_per_attr, label_encoder, cat_attrs, num_attrs):
+def decode_samples(samples, cat_dim, num_scaler, vocab_per_attr, label_encoder, cat_attrs, num_attrs, synthesizer_model, cat_emb_dim):
     """Decodes generated samples back to their original format."""
     samples_num = samples[:, cat_dim:]
     samples_cat = samples[:, :cat_dim]

@@ -3,7 +3,7 @@ import math
 import numpy as np
 import torch
 import torch.nn.functional as F
-
+import os
 
 class BaseDiffuser(object):
 
@@ -13,7 +13,8 @@ class BaseDiffuser(object):
             beta_start=1e-4, 
             beta_end=0.02, 
             device='cpu',
-            scheduler='linear'
+            scheduler='linear',
+            save_dir=None
         ):
         """Base constructor for diffusion operations
 
@@ -25,6 +26,7 @@ class BaseDiffuser(object):
             scheduler (str, optional): scheduler type. Defaults to 'linear'.
         """
 
+        self.save_dir = save_dir
         self.total_steps = total_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
@@ -112,3 +114,23 @@ class BaseDiffuser(object):
         z_norm = model_mean + (epsilon_t * random_noise)
 
         return z_norm
+    
+    def save_model(self, filename='diffuser.pth'):
+        """Save the whole BaseDiffuser model."""
+        if self.save_dir is None:
+            raise ValueError("Save directory is not set. Please provide a valid directory.")
+        
+        save_path = os.path.join(self.save_dir, filename)
+        torch.save(self, save_path)
+        print(f"Model saved to {save_path}")
+        
+    def load_model(filepath):
+        """Load the whole BaseDiffuser model from a file.
+
+        Args:
+            filepath (str): Path to the file containing the saved model.
+
+        Returns:
+            BaseDiffuser: Loaded model instance.
+        """
+        return torch.load(filepath)
