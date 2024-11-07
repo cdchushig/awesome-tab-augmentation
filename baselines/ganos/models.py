@@ -2,6 +2,7 @@ import torch
 from torch import nn, optim
 import torch.nn.functional as F
 from torch.autograd import grad as torch_grad
+import os
 
 import numpy as np
 import pandas as pd
@@ -18,6 +19,7 @@ from pathlib import Path
 
 import logging
 import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 
 
@@ -259,6 +261,9 @@ class BaseGAN():
             n_iters: int = None,
             epochs: int = None):
 
+        # Initialize SummaryWriter
+        writer = SummaryWriter(log_dir=os.path.join("logs", "fit_logs"))
+
         # Infer categorical dimensions if necessary
         if cat_cols is not None and isinstance(X, pd.DataFrame):
             cat_dims = get_cat_dims(X, cat_cols)
@@ -319,14 +324,16 @@ class BaseGAN():
             n_iters = int(iters_per_epoch * epochs)
         print(f"Total iterations: {n_iters}")
 
-        # Train the model
+        # Train the model with TensorBoard logging
         print("Starting training...")
-        self.train(X=X_tens, y=y_tens, batch_size=batch_size, n_iters=n_iters, y_train=y_train)
+        self.train(X=X_tens, y=y_tens, batch_size=batch_size, n_iters=n_iters, y_train=y_train, writer=writer)
+
+        # Close the writer after training completes
+        writer.close()
 
         return self
 
-
-    def train(self, X, y=None, batch_size=256, n_iters=1000, y_train=None):
+    def train(self, X, y=None, batch_size=256, n_iters=1000, y_train=None, writer: SummaryWriter = None):
         # calc total_iters per epoch
         self.batch_size = batch_size
         self.target_batch_size = batch_size
@@ -341,7 +348,7 @@ class BaseGAN():
                 logging.info('Pretrained the aux classifier. Proceeding to training GAN or aux teacher if used.')
             else:
                 logging.debug(f'self.total_iters is already at "{self.total_iters}" > 0,'
-                              f' thus we assume that aux networks have been pretrained already.')
+                            f' thus we assume that aux networks have been pretrained already.')
 
         if self.use_aux_teacher_loss:
             if not self.total_iters > 0:
@@ -351,7 +358,7 @@ class BaseGAN():
                 logging.info('Pretrained the aux teacher. Proceeding to training GAN.')
             else:
                 logging.debug(f'self.total_iters is already at "{self.total_iters}" > 0,'
-                              f' thus we assume that aux networks have been pretrained already.')
+                            f' thus we assume that aux networks have been pretrained already.')
 
         if n_iters < iters_per_epoch:
             logging.warning(
@@ -361,9 +368,20 @@ class BaseGAN():
         logging.info(
             f'Starting training. Expecting to train for {epochs_needed} epochs '
             f'at {iters_per_epoch} iters per epoch to reach target of {n_iters}.')
+
         for epoch in range(epochs_needed):
             self._train_epoch(X=X, y=y, iters_per_epoch=iters_per_epoch)
-        #### END of training
+
+            # Log metrics with TensorBoard after each epoch, if writer is provided
+            if writer is not None:
+                loss_g = self.metrics['netG_loss'][-1]
+                loss_d = self.metrics['netD_loss'][-1]
+
+                writer.add_scalar('Loss/Generator', loss_g, epoch)
+                writer.add_scalar('Loss/Discriminator', loss_d, epoch)
+                writer.add_scalar('Iterations/Total', self.total_iters, epoch)
+
+        # End of training
         if self.print_every > 0:
             self._print_metrics(n_iters=self.n_iters, end='\n')
         logging.info(f'Finished training after {self.total_iters}/{n_iters}.')
@@ -371,8 +389,7 @@ class BaseGAN():
         if self.write_to_disk:
             logging.info('Saving model, data, metrics and plots.')
             self._plot_metrics()
-            save_current_plot(path=self.prefix, name=f'metrics_final_iters_{self.total_iters}',
-                              show=True)
+            save_current_plot(path=self.prefix, name=f'metrics_final_iters_{self.total_iters}', show=True)
             if self.condition:
                 self._save_data(self.sample(n=50000, y='50-50'))
             else:

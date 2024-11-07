@@ -4,6 +4,13 @@
 import torch
 import numpy as np
 from scipy.stats import betaprime
+
+import os
+import torch
+import time
+from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
+
 #----------------------------------------------------------------------------
 # Loss function corresponding to the variance preserving (VP) formulation
 # from the paper "Score-Based Generative Modeling through Stochastic
@@ -165,3 +172,52 @@ class EDMLoss:
 
         return loss
 
+def train_model(model, train_loader, optimizer, scheduler, device, num_epochs, early_stopping_patience, ckpt_path):
+    writer = SummaryWriter(log_dir=os.path.join(ckpt_path, 'logs'))
+    best_loss = float('inf')
+    patience = 0
+    start_time = time.time()
+    current_lr = optimizer.param_groups[0]['lr']
+    
+    for epoch in range(num_epochs):
+        model.train()
+        epoch_loss = 0.0
+        len_input = 0
+
+        pbar = tqdm(train_loader, total=len(train_loader), desc=f"Epoch {epoch+1}/{num_epochs}")
+        for batch in pbar:
+            inputs = batch.float().to(device)
+            loss = model(inputs).mean()
+            
+            epoch_loss += loss.item() * len(inputs)
+            len_input += len(inputs)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            pbar.set_postfix({"Loss": loss.item()})
+
+        curr_loss = epoch_loss / len_input
+        scheduler.step(curr_loss)
+        
+        writer.add_scalar('Loss', curr_loss, epoch)
+
+        # if lr changed, print
+        if optimizer.param_groups[0]['lr'] != current_lr:
+            current_lr = optimizer.param_groups[0]['lr']
+            print(f'Learning rate changed to {current_lr}')
+
+        if curr_loss < best_loss:
+            best_loss = curr_loss
+            patience = 0
+            torch.save(model.state_dict(), os.path.join(ckpt_path, 'model.pt'))
+            print('Best loss:', best_loss)
+        else:
+            patience += 1
+            if patience >= early_stopping_patience:
+                print('Early stopping triggered. Best loss:', best_loss)
+                break
+
+    print('Training time:', time.time() - start_time)
+    writer.close()

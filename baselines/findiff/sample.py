@@ -46,7 +46,7 @@ def main(args):
 
     # Create DataLoader
     dataloader, label_torch = create_dataloader(train_cat_scaled, train_num_scaled, label_tensor, args.batch_size)
-        
+
     n_cat_tokens = len(np.unique(train_df[cat_attrs]))
     cat_dim = args.cat_emb_dim * len(cat_attrs)
     num_dim = len(num_attrs)

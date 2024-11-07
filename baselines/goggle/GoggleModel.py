@@ -111,9 +111,9 @@ class GoggleModel:
 
             return eval_loss, rec_loss, kld_loss, graph_loss
 
-    def fit(self, train_loader, model_save_path):
-        # data_loaders = get_dataloader(data, self.batch_size, self.seed)
+    from torch.utils.tensorboard import SummaryWriter
 
+    def fit(self, train_loader, model_save_path, writer: SummaryWriter = None):
         best_loss = np.inf
         for epoch in range(self.epochs):
             train_loss, num_samples = 0.0, 0
@@ -125,7 +125,6 @@ class GoggleModel:
                         self.optimiser_ga.zero_grad()
 
                         data = data.to(self.device)
-
                         x_hat, adj, mu_z, logvar_z = self.model(data, epoch)
                         loss, _, _, _ = self.loss(x_hat, data, mu_z, logvar_z, adj)
 
@@ -139,7 +138,6 @@ class GoggleModel:
                         self.optimiser_gl.zero_grad()
 
                         data = data.to(self.device)
-
                         x_hat, adj, mu_z, logvar_z = self.model(data, epoch)
                         loss, _, _, _ = self.loss(x_hat, data, mu_z, logvar_z, adj)
 
@@ -154,7 +152,6 @@ class GoggleModel:
                     self.model.train()
 
                     self.optimiser.zero_grad()
-
                     x_hat, adj, mu_z, logvar_z = self.model(data, epoch)
                     loss, _, _, _ = self.loss(x_hat, data, mu_z, logvar_z, adj)
 
@@ -166,33 +163,18 @@ class GoggleModel:
 
             train_loss /= num_samples
 
+            # Save best model
             if train_loss <= best_loss:
                 best_loss = train_loss
-
                 torch.save(self.model.state_dict(), model_save_path)
-            print(
-                f"[Epoch {(epoch+1):3}/{self.epochs},] train: {train_loss:.3f}"
-                )
 
+            print(f"[Epoch {(epoch+1):3}/{self.epochs}] train: {train_loss:.3f}")
 
-            # val_loss = self.evaluate(data_loaders["val"], epoch)
+            # Log train loss to TensorBoard
+            if writer is not None:
+                writer.add_scalar('Loss/Train', train_loss, epoch)
 
-            # if val_loss[1] < best_loss:
-            #     best_loss = val_loss[1]
-            #     patience = 0
-            #     torch.save(self.model.state_dict(), model_save_path)
-            # else:
-            #     patience += 1
-
-            # if (epoch + 1) % self.logging_epoch == 0:
-            #     print(
-            #         f"[Epoch {(epoch+1):3}/{self.epochs}, patience {patience:2}] train: {train_loss:.3f}, val: {val_loss[0]:.3f}"
-            #     )
-
-            # if patience == self.patience:
-            #     self.model.load_state_dict(torch.load(model_save_path), strict=False)
-            #     print(f"Training terminated after {epoch} epochs")
-            #     break
+        return self
 
     def enforce_constraints(self, X_synth, X_test):
         schema = Schema(data=X_test)
