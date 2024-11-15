@@ -283,8 +283,8 @@ def make_num_dist_plots(X_real: np.array, X_fake: np.array,
     # print(fig.get_figwidth(),'< width || height >', fig.get_figheight())
 
     for idx, ax in enumerate(axes.flatten()):
-        sns.kdeplot(X_real[:real_size, idx], label='real', ax=ax, shade=True, legend=False, bw=0.02)
-        sns.kdeplot(X_fake[:fake_size, idx], label='fake', ax=ax, shade=True, legend=False, bw=0.02)
+        sns.kdeplot(X_real[:real_size, idx], label='real', ax=ax, fill=True, legend=False, bw_method=0.02)
+        sns.kdeplot(X_fake[:fake_size, idx], label='fake', ax=ax, fill=True, legend=False, bw_method=0.02)
         ax.set_yticks([])
         ax.set_xticks([0, 1])
         if num_cols is not None:

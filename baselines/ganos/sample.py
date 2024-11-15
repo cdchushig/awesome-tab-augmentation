@@ -15,7 +15,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
-
 def main(args):
     # Load dataset information and initialize paths
     data_dir = f'data/{args.dataname}'
@@ -23,6 +22,7 @@ def main(args):
     train_data_path = f'{data_dir}/train.csv'
     
     # Load dataset metadata
+
     with open(info_path, 'r') as f:
         info = json.load(f)
         
@@ -47,9 +47,11 @@ def main(args):
         cat_dims=cat_dims,
         cat_cols=cat_cols
     )
+    
+    model_dir = f"baselines/ganos/{args.dataname}"
 
-    gan.netG = torch.load(f'{args.model_dir}/models/netG/netG_iter12000.statedict')
-    gan.netD = torch.load(f'{args.model_dir}/models/netD/netD_iter12000.statedict')
+    gan.netG = torch.load(f'{model_dir}/models/netG/netG_final.statedict')
+    gan.netD = torch.load(f'{model_dir}/models/netD/netD_final.statedict')
         
     # preprocess data
     num_prep = make_pipeline(SimpleImputer(strategy='mean'),
@@ -66,12 +68,13 @@ def main(args):
     # Generate synthetic data
         
     X_y_fake = gan.sample(n=int(len(X_train)))
-    X_synthetic, y_synthetic = np.hsplit(X_y_fake, [-2])
-    y_synthetic = y_synthetic[:, 1]
-        
+    X_synthetic = X_y_fake[:, :-1]
+    y_synthetic = X_y_fake[:, -1]
+            
     # Recover the original shape
     fitted_encoder = prep.named_transformers_['cat'].named_steps['onehotencoder']
-    X_syn_cat = X_synthetic[:, len(num_cols):]
+    X_syn_cat = X_y_fake[:, len(num_cols):]
+    
     X_syn_cat_orig = fitted_encoder.inverse_transform(X_syn_cat)
     
     X_synthetic_original = np.hstack([X_synthetic[:, :len(num_cols)], X_syn_cat_orig])
@@ -84,10 +87,9 @@ def main(args):
     syn_df = syn_df[train_df.columns]
     
     # Create output directory path
-    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
-    output_dir = f'synthetic/{args.dataname}/ganos/'
+    output_dir = f'synthetic/{args.dataname}'
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, 'synthetic_data.csv')
+    output_path = os.path.join(output_dir, 'ganos.csv')
     
     syn_df.to_csv(output_path, index=False)
     
@@ -97,7 +99,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sample synthetic data using WGANGP model')
     parser.add_argument('--dataname', type=str, required=True, help='Dataset name')
-    parser.add_argument('--model_dir', type=str, required=True, help='Path to model directory')
     parser.add_argument('--gpu', type=int, default=-1, help='GPU index to use for sampling, -1 for CPU')
     
     args = parser.parse_args()

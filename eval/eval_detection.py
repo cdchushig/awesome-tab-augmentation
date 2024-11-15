@@ -102,3 +102,7 @@ if __name__ == '__main__':
     )
 
     print(f'{dataname}, {model}: {score}')
+    
+    
+# The logistic detection score assesses the realism of synthetic data by testing whether a classifier can distinguish 
+# between real and synthetic data.

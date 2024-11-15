@@ -106,6 +106,7 @@ class BaseGAN():
 
     def _init_netG(self, kwargs=dict()):
         logging.debug('GAN got no netG during init. Initialising now.')
+        print(f"cat_dims: {self.cat_dims}")
         netG = Generator(cat_output_dims=self.cat_dims,
                          output_dim=self.num_dim,
                          **kwargs)
@@ -113,6 +114,7 @@ class BaseGAN():
 
     def _init_netD(self, kwargs=dict()):
         logging.debug('GAN got no netG during init. Initialising now.')
+        print("gan got no netD during init. Initialising now.")
         netD = Discriminator(cat_input_dims=self.cat_dims,
                              input_dim=self.num_dim,
                              **kwargs)
@@ -262,12 +264,17 @@ class BaseGAN():
             epochs: int = None):
 
         # Initialize SummaryWriter
-        writer = SummaryWriter(log_dir=os.path.join("logs", "fit_logs"))
+        writer = SummaryWriter(log_dir="baselines/ganos/logs")
 
         # Infer categorical dimensions if necessary
         if cat_cols is not None and isinstance(X, pd.DataFrame):
             cat_dims = get_cat_dims(X, cat_cols)
-        self.num_dim = len(num_cols) if num_cols is not None else X.shape[1]
+        
+        if self.num_cols is None:
+            self.num_dim = len(num_cols) if num_cols is not None else X.shape[1]
+        else:
+            self.num_dim = len(self.num_cols)    
+        print(f"num_dim: {self.num_dim}")
         self.cat_dims = cat_dims if cat_dims is not None else []
 
         # Convert X and y to tensors
@@ -395,7 +402,7 @@ class BaseGAN():
             else:
                 self._save_data(self.sample(n=50000))
             self._save_metrics()
-            self._save_models()
+            self._save_models(state='final')
             self.netG._remove_activation_functions()
             joblib.dump(self.__dict__, f'{self.prefix}/models/_whole_basegan.pkl')
             self.netG._restore_activation_functions()
@@ -631,7 +638,7 @@ class BaseGAN():
 
         X_fake = self.sample(n=n, y=None, as_numpy=False)
         # plot metrics
-        self._plot_metrics()
+        self._plot_metrics(iterations=self.total_iters)
         save_current_plot(path=self.prefix + '/plots', name=f'metrics_latest_iter',
                           show=True)
         # num dist plots
@@ -662,18 +669,24 @@ class BaseGAN():
         save_current_plot(path=self.prefix + '/plots', name=f'classification_plots_latest_iter',
                           show=True)
 
-    def _save_models(self):
+    def _save_models(self, state=None):
         logging.info(f'Saving models to {self.prefix}/models. Current iter is {self.total_iters}.')
         # we remove and restore these functions because pytorch has a bug that makes pickling fail
         # if a function is assigned to a class attribute
         self.netG._remove_activation_functions()
         try:
-            torch.save(self.netG, f'{self.prefix}/models/netG/netG_iter{self.total_iters}.statedict')
+            if state is None:
+                torch.save(self.netG, f'{self.prefix}/models/netG/netG_iter{self.total_iters}.statedict')
+            else:
+                torch.save(self.netG, f'{self.prefix}/models/netG/netG_{state}.statedict')
         except:
             logging.warning('Pickling netG failed.')
         self.netG._restore_activation_functions()
         try:
-            torch.save(self.netD, f'{self.prefix}/models/netD/netD_iter{self.total_iters}.statedict')
+            if state is None:
+                torch.save(self.netD, f'{self.prefix}/models/netD/netD_iter{self.total_iters}.statedict')
+            else:
+                torch.save(self.netD, f'{self.prefix}/models/netD/netD_{state}.statedict')
         except:
             logging.warning('Pickling netD failed.')
 
@@ -992,7 +1005,8 @@ class WGANGP(BaseGAN):
         
         print(out, end=end)
 
-    def _plot_metrics(self, show=False):
+    def _plot_metrics(self, show=False, iterations=None):
+        sav_path = self.prefix + '/plots'
         fig, axes = plt.subplots(3, 2)
         axes = axes.flatten()
         fig.set_size_inches((16, 9))
@@ -1036,6 +1050,11 @@ class WGANGP(BaseGAN):
         plt.tight_layout()
         if show:
             plt.show()
+        
+        if iterations is not None:
+            plt.savefig(f'{sav_path}/metrics_iter_{iterations}.png')
+        else:
+            plt.savefig(f'{sav_path}/metrics_latest_iter.png')
 
     def get_report_row(self, return_df: bool = True):
         report_dict = super(WGANGP, self).get_report_row(return_df=False)
@@ -1156,6 +1175,7 @@ class Generator(nn.Module):
                 self.embedding_dims = [int(min(np.ceil(cat_dim / 3), 20)) for cat_dim in cat_output_dims]
                 self.emb_layers = nn.ModuleList([nn.Linear(cat_dim, emb_dim, bias=False)
                                                  for cat_dim, emb_dim in zip(cat_output_dims, self.embedding_dims)])
+                                
                 self.cat_reduction_layer = nn.Linear(sum(self.embedding_dims), 16)
                 input_to_final_dim += 16
 
@@ -1216,7 +1236,6 @@ class Generator(nn.Module):
                 x_emb = []
                 for cat_idx, layer in enumerate(self.emb_layers):
                     x_emb.append(layer(x_cat_cond[cat_idx]))
-                # embeddings >  single cat vector
                 x_emb = self.cat_reduction_layer(torch.cat([*x_emb], dim=1))
                 if self.activation is not None:
                     x_emb = self.activation(x_emb)

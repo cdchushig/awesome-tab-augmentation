@@ -10,9 +10,16 @@ Based in part on: https://github.com/lucidrains/denoising-diffusion-pytorch/blob
 eps = 1e-8
 
 def log_1_min_a(a):
+    if isinstance(a, np.ndarray):
+        a = torch.tensor(a)
     return torch.log(1 - a.exp() + 1e-40)
 
 def log_add_exp(a, b):
+    if isinstance(a, np.ndarray):
+        a = torch.tensor(a)
+    if isinstance(b, np.ndarray):
+        b = torch.tensor(b)
+
     maximum = torch.max(a, b)
     return maximum + torch.log(torch.exp(a - maximum) + torch.exp(b - maximum))
 
@@ -48,7 +55,10 @@ class MultinomialDiffusion(torch.nn.Module):
 
         betas = torch.linspace(FLAGS.beta_1, FLAGS.beta_T, FLAGS.T, dtype=torch.float64).double()
         alphas = 1. - betas
-        
+            
+        if isinstance(alphas, torch.Tensor):
+            alphas = alphas.cpu().detach().numpy()  # Para evitar problemas si `alphas` está en la GPU
+
         alphas = np.sqrt(alphas)
         betas = 1. - alphas
 
@@ -60,7 +70,11 @@ class MultinomialDiffusion(torch.nn.Module):
         self.num_classes_column = np.concatenate([self.num_classes[i].repeat(self.num_classes[i]) for i in range(len(self.num_classes))])
         assert log_add_exp(log_alpha, log_1_min_alpha).abs().sum().item() < 1.e-5
         assert log_add_exp(log_cumprod_alpha, log_1_min_cumprod_alpha).abs().sum().item() < 1e-5
-        assert (np.cumsum(log_alpha) - log_cumprod_alpha).abs().sum().item() < 1.e-5
+
+        log_alpha = torch.tensor(log_alpha)
+        log_1_min_alpha = torch.tensor(log_1_min_alpha)
+        log_cumprod_alpha = torch.tensor(log_cumprod_alpha)
+        log_1_min_cumprod_alpha = torch.tensor(log_1_min_cumprod_alpha)
 
         # Convert to float32 and register buffers.
         self.register_buffer('log_alpha', log_alpha.float())

@@ -35,10 +35,13 @@ def main(args):
     train, train_con_data, train_dis_data, test, (transformer_con, transformer_dis, meta), con_idx, dis_idx = tabular_dataload.get_dataset(args)
     _, _, categories, d_numerical = preprocess(dataset_dir, task_type=task_type)
     num_class = np.array(categories)
+    
+    train_con_data = np.array(train_con_data, dtype=np.float32)
+    train_con_data = torch.tensor(train_con_data, dtype=torch.float32)
 
-    # Convert data to tensors and set up data loaders
-    train_con_data = torch.tensor(train_con_data.astype(np.float32)).float()
-    train_dis_data = torch.tensor(train_dis_data.astype(np.int32)).long()
+    train_dis_data = np.array(train_dis_data, dtype=np.int32)
+    train_dis_data = torch.tensor(train_dis_data, dtype=torch.int32)
+    
     train_iter_con = infiniteloop(DataLoader(train_con_data, batch_size=args.training_batch_size))
     train_iter_dis = infiniteloop(DataLoader(train_dis_data, batch_size=args.training_batch_size))
 
@@ -95,8 +98,8 @@ if __name__ == '__main__':
     parser.add_argument('--beta_1', type=float, default=0.1, help='Beta 1')
     parser.add_argument('--beta_T', type=float, default=0.9, help='Beta T')
     parser.add_argument('--T', type=int, default=1000, help='Timesteps')
-    parser.add_argument('--lr_con', type=float, default=1e-3, help='Learning rate for continuous model')
-    parser.add_argument('--lr_dis', type=float, default=1e-3, help='Learning rate for discrete model')
+    parser.add_argument('--lr_con', type=float, default=1e-4, help='Learning rate for continuous model')
+    parser.add_argument('--lr_dis', type=float, default=1e-4, help='Learning rate for discrete model')
     parser.add_argument('--grad_clip', type=float, default=1.0, help='Gradient clipping value')
     parser.add_argument('--lambda_con', type=float, default=1.0, help='Lambda for continuous model')
     parser.add_argument('--lambda_dis', type=float, default=1.0, help='Lambda for discrete model')

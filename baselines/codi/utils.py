@@ -201,6 +201,10 @@ def train_model(model_con, model_dis, datalooper_train_con, datalooper_train_dis
 
         print(f"Epoch {epoch + 1}/{args.total_epochs_both} | Avg Continuous Loss: {avg_con_loss:.3f} | Avg Discrete Loss: {avg_dis_loss:.3f}")
 
+
+        if epoch % 10 == 0:
+            print(f"Continuous LR: {optim_con.param_groups[0]['lr']:.6f} | Discrete LR: {optim_dis.param_groups[0]['lr']:.6f}")
+
         # Check if this is the best loss and save model
         total_loss = avg_con_loss + avg_dis_loss
         if total_loss < best_loss:
