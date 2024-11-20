@@ -47,7 +47,6 @@ def main(args):
     # Define numerical and categorical columns
     num_cols = [train_df.columns[i] for i in info['num_col_idx']]
     cat_cols = [train_df.columns[i] for i in info['cat_col_idx']]
-    # remove the target column from the categorical columns
     cat_cols = [col for col in cat_cols if col != target_col]
     cat_dims = get_cat_dims(X_train, cat_cols)
     
