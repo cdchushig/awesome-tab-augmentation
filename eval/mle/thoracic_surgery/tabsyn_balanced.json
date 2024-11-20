@@ -1,0 +1,102 @@
+{
+    "best_f1_scores": {
+        "DecisionTreeClassifier": {
+            "binary_f1": 0.20689655172413793, 
+            "roc_auc": 0.45394736842105265, 
+            "weighted_f1": 0.28133552271483303, 
+            "accuracy": 0.5
+        }, 
+        "RandomForestClassifier": {
+            "binary_f1": 0.2, 
+            "roc_auc": 0.575657894736842, 
+            "weighted_f1": 0.3004830917874396, 
+            "accuracy": 0.6521739130434783
+        }, 
+        "XGBClassifier": {
+            "binary_f1": 0.4, 
+            "roc_auc": 0.6052631578947368, 
+            "weighted_f1": 0.48402032749858837, 
+            "accuracy": 0.8043478260869565
+        }
+    }, 
+    "best_weighted_scores": {
+        "DecisionTreeClassifier": {
+            "binary_f1": 0.13333333333333333, 
+            "roc_auc": 0.48684210526315785, 
+            "weighted_f1": 0.2546960286090721, 
+            "accuracy": 0.717391304347826
+        }, 
+        "RandomForestClassifier": {
+            "binary_f1": 0.2857142857142857, 
+            "roc_auc": 0.5855263157894737, 
+            "weighted_f1": 0.3731956959146181, 
+            "accuracy": 0.6739130434782609
+        }, 
+        "XGBClassifier": {
+            "binary_f1": 0.4, 
+            "roc_auc": 0.6052631578947368, 
+            "weighted_f1": 0.48402032749858837, 
+            "accuracy": 0.8043478260869565
+        }
+    }, 
+    "best_auroc_scores": {
+        "DecisionTreeClassifier": {
+            "binary_f1": 0.20689655172413793, 
+            "roc_auc": 0.45394736842105265, 
+            "weighted_f1": 0.28133552271483303, 
+            "accuracy": 0.5
+        }, 
+        "RandomForestClassifier": {
+            "binary_f1": 0.2, 
+            "roc_auc": 0.5822368421052632, 
+            "weighted_f1": 0.3004830917874396, 
+            "accuracy": 0.6521739130434783
+        }, 
+        "XGBClassifier": {
+            "binary_f1": 0.4, 
+            "roc_auc": 0.6052631578947368, 
+            "weighted_f1": 0.48402032749858837, 
+            "accuracy": 0.8043478260869565
+        }
+    }, 
+    "best_acc_scores": {
+        "DecisionTreeClassifier": {
+            "binary_f1": 0.20689655172413793, 
+            "roc_auc": 0.45394736842105265, 
+            "weighted_f1": 0.28133552271483303, 
+            "accuracy": 0.5
+        }, 
+        "RandomForestClassifier": {
+            "binary_f1": 0.36363636363636365, 
+            "roc_auc": 0.611842105263158, 
+            "weighted_f1": 0.43952569169960476, 
+            "accuracy": 0.6956521739130435
+        }, 
+        "XGBClassifier": {
+            "binary_f1": 0.4, 
+            "roc_auc": 0.6052631578947368, 
+            "weighted_f1": 0.48402032749858837, 
+            "accuracy": 0.8043478260869565
+        }
+    }, 
+    "best_avg_scores": {
+        "DecisionTreeClassifier": {
+            "binary_f1": 0.21428571428571427, 
+            "roc_auc": 0.4720394736842105, 
+            "weighted_f1": 0.2911490683229814, 
+            "accuracy": 0.5217391304347826
+        }, 
+        "RandomForestClassifier": {
+            "binary_f1": 0.2727272727272727, 
+            "roc_auc": 0.5592105263157895, 
+            "weighted_f1": 0.35945793337097687, 
+            "accuracy": 0.6521739130434783
+        }, 
+        "XGBClassifier": {
+            "binary_f1": 0.4, 
+            "roc_auc": 0.6052631578947368, 
+            "weighted_f1": 0.48402032749858837, 
+            "accuracy": 0.8043478260869565
+        }
+    }
+}

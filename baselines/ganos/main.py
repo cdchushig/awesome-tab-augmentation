@@ -75,7 +75,7 @@ def main(args):
 
     # Fit the GAN model with arguments
     gan.fit(X_train_trans, y=y_train, 
-            condition=True,
+            condition=False,
             epochs=num_epochs,  
             batch_size=batch_size,
             cat_dims=cat_dims,
@@ -112,8 +112,8 @@ def main(args):
     syn_df = pd.DataFrame(X_res)
     syn_df[target_col] = y_res
     
-    syn_df.to_csv(f'{gan.prefix}/synthetic.csv', index=False)
-    print(f"Synthetic data saved to {gan.prefix}/synthetic.csv")
+    syn_df.to_csv(f'{gan.prefix}/synthetic_balanced.csv', index=False)
+    print(f"Synthetic data saved to {gan.prefix}/synthetic_balanced.csv")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train WGANGP on tabular data')

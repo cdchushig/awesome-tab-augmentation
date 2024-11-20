@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataname', type=str, default='adult')
 parser.add_argument('--model', type=str, default='real')
 parser.add_argument('--path', type=str, default = None, help='The file path of the synthetic data')
-
+parser.add_argument('--balance', type=bool, default=False, help='Using balanced data or not')
 args = parser.parse_args()
 
 # def preprocess(train, test, info)
@@ -30,10 +30,17 @@ if __name__ == '__main__':
     model = args.model
     
     if not args.path:
-        train_path = f'synthetic/{dataname}/{model}.csv'
+        if args.balance:
+            train_path = f'synthetic/{dataname}/{model}_balanced.csv'
+            print('Using balanced data from ', train_path)
+        else:
+            train_path = f'data/{dataname}/train.csv'
+            print('Using original training data from ', train_path)
     else:
         train_path = args.path
-    test_path = f'synthetic/{dataname}/test.csv'
+        print('Using data from ', train_path)
+        
+    test_path = f'data/{dataname}/test.csv'
 
     train = pd.read_csv(train_path).to_numpy()
     test = pd.read_csv(test_path).to_numpy()
@@ -69,14 +76,15 @@ if __name__ == '__main__':
             for method in scores:
                 name = method['name']  
                 method.pop('name')
-                overall_scores[score_name][name] = method 
+                overall_scores[score_name][name] = method
+                print(f'{score_name} {name} {method}')
 
     if not os.path.exists(f'eval/mle/{dataname}'):
         os.makedirs(f'eval/mle/{dataname}')
     
-    save_path = f'eval/mle/{dataname}/{model}.json'
+    save_path = f'eval/mle/{dataname}/original.json'
+    if args.balance:
+        save_path = f'eval/mle/{dataname}/{model}_balanced.json'
     print('Saving scores to ', save_path)
     with open(save_path, "w") as json_file:
         json.dump(overall_scores, json_file, indent=4, separators=(", ", ": "))
-
-        

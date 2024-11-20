@@ -1,14 +1,8 @@
 import os
-import time
-import torch
-import argparse
 import json
-import numpy as np
 import pandas as pd
-
-from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
-from utils_train import preprocess, TabularDataset  # Adjust path if necessary
+import argparse
+import torch
 
 from ctgan import CTGAN
 
@@ -32,37 +26,27 @@ def main(args):
     # Initialize the CTGAN model
     ctgan = CTGAN(
         embedding_dim=256,
-        generator_dim=(512,512),
-        discriminator_dim=(512,512),
+        generator_dim=(512, 512),
+        discriminator_dim=(512, 512),
         batch_size=100,  # Must be a multiple of `pac`
         epochs=100,
         pac=10  # Ensure `batch_size` is divisible by this value
     )
     ctgan.fit(train_df, discrete_columns=cat_cols)
     
-    # Generate synthetic data
-    synthetic_data = ctgan.sample(len(train_df))
-
-    # Create output directory path
-    output_dir = f'synthetic/{args.dataname}'
+    # Save the trained model
+    output_dir = f'baselines/ctgan/models/{args.dataname}'
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, 'ctgan.csv')
+    model_path = os.path.join(output_dir, 'model.pth')
+    torch.save(ctgan, model_path)
     
-    synthetic_data.to_csv(output_path, index=False)
-    
-    print(f"Shape of synthetic data: {synthetic_data.shape}")
-    print(f"Synthetic data saved to {output_path}")
-    
+    print(f"Model saved to {model_path}")
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train WGANGP on tabular data')
+    parser = argparse.ArgumentParser(description='Train CTGAN on tabular data')
 
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset')
     parser.add_argument('--gpu', type=int, default=0, help='GPU index')
-    parser.add_argument('--num_epochs', type=int, default=12000, help='Number of epochs')
-    parser.add_argument('--batch_size', type=int, default=100, help='Batch size')
-    parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
-    
     args = parser.parse_args()
 
     # Set device

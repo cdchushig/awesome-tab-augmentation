@@ -45,8 +45,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training of TabSyn')
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset.')
     parser.add_argument('--gpu', type=int, default=0, help='GPU index.')
-    parser.add_argument('--num_epochs', type=int, default=1000, help='Number of epochs.')
-    parser.add_argument('--batch_size', type=int, default=4096, help='batch size')
+    parser.add_argument('--num_epochs', type=int, default=10000, help='Number of epochs.')
+    parser.add_argument('--batch_size', type=int, default=128, help='batch size')
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument('--model_version', type=str, default='', help='datetime of the model version')
 

@@ -7,7 +7,7 @@ import pandas as pd
 import os
 import time
 from baselines.ganos.models import WGANGP
-from utils_train import preprocess, TabularDataset
+from utils_train import preprocess, TabularDataset, compute_difference_samples, balance_dataset
 from baselines.ganos.helpers import get_cat_dims  # Adjust path if necessary
 
 from sklearn.pipeline import make_pipeline
@@ -17,6 +17,9 @@ from sklearn.compose import ColumnTransformer
 
 def main(args):
     # Load dataset information and initialize paths
+    dataname = args.dataname
+    balance = args.balance
+    save_path = args.save_path
     data_dir = f'data/{args.dataname}'
     info_path = f'{data_dir}/info.json'
     train_data_path = f'{data_dir}/train.csv'
@@ -64,10 +67,17 @@ def main(args):
         remainder='drop')
     
     X_train_trans = prep.fit_transform(X_train)
+    num_samples = len(X_train)
+    
+    if args.balance:
+        print('Creating a balanced oversampled dataset')
+        save_path = save_path.replace('.csv', '_balanced.csv')
+        difference_samples, minority_percentage = compute_difference_samples(dataname)    
+        num_samples = int(difference_samples/minority_percentage) * 2
+        print(f"num_samples: {num_samples}") 
     
     # Generate synthetic data
-        
-    X_y_fake = gan.sample(n=int(len(X_train)))
+    X_y_fake = gan.sample(n=num_samples)
     X_synthetic = X_y_fake[:, :-1]
     y_synthetic = X_y_fake[:, -1]
             
@@ -86,6 +96,12 @@ def main(args):
     # reorder columns to the original order
     syn_df = syn_df[train_df.columns]
     
+    if args.balance:
+        original_train_df = pd.read_csv(f'data/{args.dataname}/train.csv')
+        target_col_idx = info['target_col_idx'][0] if isinstance(info['target_col_idx'], list) else info['target_col_idx']
+        target_col = original_train_df.columns[target_col_idx]
+        syn_df = balance_dataset(original_train_df, syn_df, target_col, difference_samples)
+    
     # Create output directory path
     output_dir = f'synthetic/{args.dataname}'
     os.makedirs(output_dir, exist_ok=True)
@@ -100,7 +116,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sample synthetic data using WGANGP model')
     parser.add_argument('--dataname', type=str, required=True, help='Dataset name')
     parser.add_argument('--gpu', type=int, default=-1, help='GPU index to use for sampling, -1 for CPU')
-    
+    parser.add_argument('--balance', type=bool, default=False, help='Balance the synthetic data')
+
     args = parser.parse_args()
     
     if args.gpu != -1 and torch.cuda.is_available():

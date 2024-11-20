@@ -1,5 +1,7 @@
 import numpy as np
 import os
+import pandas as pd
+import json
 
 import src
 from torch.utils.data import Dataset
@@ -152,3 +154,46 @@ def make_dataset(
     # D.y[split] = categorical_to_idx(D.y[split].squeeze(1))
 
     return src.transform_dataset(D, T, None)
+
+
+def compute_difference_samples(dataname):
+    data_dir = f'data/{dataname}'
+    info_path = f'{data_dir}/info.json'
+    train_dataset_path = f'{data_dir}/train.csv'
+    
+    # Load dataset information
+    with open(info_path, 'r') as f:
+        info = json.load(f)
+        
+    # Load training data
+    train_df = pd.read_csv(train_dataset_path)
+    
+    # Identify target column
+    target_col_idx = info['target_col_idx'][0] if isinstance(info['target_col_idx'], list) else info['target_col_idx']
+    target_col = train_df.columns[target_col_idx]
+    X_train = train_df.drop(columns=[target_col])
+    y_train = train_df[target_col]
+    y_train = y_train
+    
+    # Compute class imbalance ratio
+    class_counts = y_train.value_counts()
+    
+    if len(class_counts) == 1:
+        raise ValueError('Only one class present in the dataset')
+    elif len(class_counts) > 2:
+        raise ValueError('Multiclass classification is not supported')
+    else:
+        difference_samples = class_counts.max() - class_counts.min()
+        
+    minority_percentage = class_counts.min() / class_counts.sum()
+    
+    return difference_samples, minority_percentage
+
+def balance_dataset(original_train_df, syn_df, target_col, num_samples_needed):
+    print(f"Number of samples needed: {num_samples_needed}")
+    print(f"Number of synthetic samples: {syn_df.shape[0]}")
+    minority_class = original_train_df[target_col].value_counts().idxmin()
+    minority_samples = syn_df[syn_df[target_col] == minority_class]
+    print(f"Number of minority samples: {minority_samples.shape[0]}")
+    minority_samples = minority_samples.sample(n=num_samples_needed)
+    return pd.concat([original_train_df, minority_samples])

@@ -1,7 +1,7 @@
 ,Column 1,Column 2,Metric,Score,Real Correlation,Synthetic Correlation
 0,0,1,CorrelationSimilarity,0.9828545871306431,0.8314152654814193,0.8657060912201332
 1,0,2,CorrelationSimilarity,0.9834904826663355,-0.2936033422003581,-0.2605843075330292
-2,0,3,ContingencySimilarity,0.824390243902439,,
+2,0,3,ContingencySimilarity,0.8243902439024391,,
 3,0,4,ContingencySimilarity,0.8536585365853658,,
 4,0,5,ContingencySimilarity,0.8512195121951219,,
 5,0,6,ContingencySimilarity,0.8414634146341463,,
@@ -42,10 +42,10 @@
 40,1,21,ContingencySimilarity,0.8829268292682927,,
 41,2,3,ContingencySimilarity,0.8292682926829269,,
 42,2,4,ContingencySimilarity,0.848780487804878,,
-43,2,5,ContingencySimilarity,0.8317073170731708,,
+43,2,5,ContingencySimilarity,0.8317073170731707,,
 44,2,6,ContingencySimilarity,0.824390243902439,,
-45,2,7,ContingencySimilarity,0.8341463414634147,,
-46,2,8,ContingencySimilarity,0.8365853658536585,,
+45,2,7,ContingencySimilarity,0.8341463414634146,,
+46,2,8,ContingencySimilarity,0.8365853658536586,,
 47,2,9,ContingencySimilarity,0.8170731707317074,,
 48,2,10,ContingencySimilarity,0.8439024390243902,,
 49,2,11,ContingencySimilarity,0.8463414634146341,,

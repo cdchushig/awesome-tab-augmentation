@@ -8,15 +8,19 @@ from tabsyn.model import MLPDiffusion, Model
 from tabsyn.latent_utils import get_input_generate, recover_data, split_num_cat_target
 from tabsyn.diffusion_utils import sample
 
-warnings.filterwarnings('ignore')
+from utils_train import compute_difference_samples, balance_dataset
 
+import pandas as pd
+
+warnings.filterwarnings('ignore')
 
 def main(args):
     dataname = args.dataname
     device = args.device
     steps = args.steps
     save_path = args.save_path
-
+    balance = args.balance
+    
     train_z, _, _, ckpt_path, info, num_inverse, cat_inverse = get_input_generate(args)
     in_dim = train_z.shape[1] 
 
@@ -34,6 +38,14 @@ def main(args):
     start_time = time.time()
 
     num_samples = train_z.shape[0]
+
+    if balance:
+        print('Creating a balanced oversampled dataset')
+        save_path = save_path.replace('.csv', '_balanced.csv')
+        difference_samples, minority_percentage = compute_difference_samples(dataname)    
+        num_samples = int(difference_samples/minority_percentage) * 2
+        print(f"num_samples: {num_samples}")
+        
     sample_dim = in_dim
 
     x_next = sample(model.denoise_fn_D, num_samples, sample_dim)
@@ -48,6 +60,15 @@ def main(args):
     idx_name_mapping = {int(key): value for key, value in idx_name_mapping.items()}
 
     syn_df.rename(columns = idx_name_mapping, inplace=True)
+        
+    if balance:
+        original_train_df = pd.read_csv(f'data/{args.dataname}/train.csv')
+        print(f"shape of original_train_df: {original_train_df.shape}")
+        target_col_idx = info['target_col_idx'][0] if isinstance(info['target_col_idx'], list) else info['target_col_idx']
+        target_col = original_train_df.columns[target_col_idx]
+        syn_df = balance_dataset(original_train_df, syn_df, target_col, difference_samples)
+    
+    syn_df = syn_df.round(2)
     syn_df.to_csv(save_path, index = False)
     
     end_time = time.time()
@@ -63,6 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, default=0, help='GPU index.')
     parser.add_argument('--epoch', type=int, default=None, help='Epoch.')
     parser.add_argument('--steps', type=int, default=None, help='Number of function evaluations.')
+    parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
 
     args = parser.parse_args()
 

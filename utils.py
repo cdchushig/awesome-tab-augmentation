@@ -39,6 +39,7 @@ def get_args():
     parser.add_argument('--batch_size', type=int, default=4096, help='batch size')
     parser.add_argument('--eval_batch_size', type=int, default=2100, help='batch size')
     parser.add_argument('--training_batch_size', type=int, default=4096, help='batch size')
+    parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
 
     ''' configs for CTGAN '''
 

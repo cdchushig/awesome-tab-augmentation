@@ -20,48 +20,24 @@ CONTINUOUS = "continuous"
 
 _MODELS = {
     'binclass': [ # 184
-        #  {
-        #      'class': DecisionTreeClassifier, # 48
-        #      'kwargs': {
-        #          'max_depth': [4, 8, 16, 32], 
-        #          'min_samples_split': [2, 4, 8],
-        #          'min_samples_leaf': [1, 2, 4, 8]
-        #      }
-        #  },
-        #  {
-        #      'class': AdaBoostClassifier, # 4
-        #      'kwargs': {
-        #          'n_estimators': [10, 50, 100, 200]
-        #      }
-        #  },
-        #  {
-        #     'class': LogisticRegression, # 36
-        #     'kwargs': {
-        #          'solver': ['lbfgs'],
-        #          'n_jobs': [-1],
-        #          'max_iter': [10, 50, 100, 200],
-        #          'C': [0.01, 0.1, 1.0],
-        #          'tol': [1e-01, 1e-02, 1e-04]
-        #      }
-        #  },
-        # {
-        #     'class': MLPClassifier, # 12
-        #     'kwargs': {
-        #         'hidden_layer_sizes': [(100, ), (200, ), (100, 100)],
-        #         'max_iter': [50, 100],
-        #         'alpha': [0.0001, 0.001]
-        #     }
-        # },
-        # {
-        #     'class': RandomForestClassifier, # 48
-        #     'kwargs': {
-        #          'max_depth': [8, 16, None], 
-        #          'min_samples_split': [2, 4, 8],
-        #          'min_samples_leaf': [1, 2, 4, 8],
-        #         'n_jobs': [-1]
+          {
+              'class': DecisionTreeClassifier, # 48
+              'kwargs': {
+                  'max_depth': [4, 8, 16, 32], 
+                  'min_samples_split': [2, 4, 8],
+                  'min_samples_leaf': [1, 2, 4, 8]
+              }
+          },
+         {
+             'class': RandomForestClassifier, # 48
+             'kwargs': {
+                  'max_depth': [8, 16, None], 
+                  'min_samples_split': [2, 4, 8],
+                  'min_samples_leaf': [1, 2, 4, 8],
+                 'n_jobs': [-1]
 
-        #     }
-        # },
+             }
+         },
         {
             'class': XGBClassifier, # 36
             'kwargs': {
@@ -204,7 +180,7 @@ def feat_transform(data, info, label_encoder = None, encoders = None, cmax = Non
             if encoder:
                 feature = encoder.transform(col)
             else:
-                encoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
+                encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
                 encoders[idx] = encoder
                 feature = encoder.fit_transform(col)
                 

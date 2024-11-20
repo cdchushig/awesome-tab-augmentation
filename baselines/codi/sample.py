@@ -17,7 +17,8 @@ from baselines.codi.models.tabular_unet import tabularUnet
 from baselines.codi.diffusion_discrete import MultinomialDiffusion
 from baselines.codi.utils import *
 
-from utils_train import preprocess
+from utils_train import compute_difference_samples, balance_dataset, preprocess
+
 warnings.filterwarnings("ignore")
 
 def recover_data(syn_num, syn_cat, info):
@@ -86,11 +87,6 @@ def main(args):
     train_con_data = torch.tensor(train_con_data.astype(np.float32)).float()
     train_dis_data = torch.tensor(train_dis_data.astype(np.int32)).long()
 
-    train_iter_con = DataLoader(train_con_data, batch_size=args.training_batch_size)
-    train_iter_dis = DataLoader(train_dis_data, batch_size=args.training_batch_size)
-    datalooper_train_con = infiniteloop(train_iter_con)
-    datalooper_train_dis = infiniteloop(train_iter_dis)
-
     num_class = np.array(categories)
 
     # Condtinuous Diffusion Model Setup
@@ -115,14 +111,6 @@ def main(args):
     sched_dis = torch.optim.lr_scheduler.LambdaLR(optim_dis, lr_lambda=warmup_lr)
     trainer_dis = MultinomialDiffusion(num_class, train_dis_data.shape, model_dis, args, timesteps=args.T,loss_type='vb_stochastic').to(device)
 
-
-    num_params_con = sum(p.numel() for p in model_con.parameters())
-    num_params_dis = sum(p.numel() for p in model_dis.parameters())
-    print('Continuous model params: %d' % (num_params_con))
-    print('Discrete model params: %d' % (num_params_dis))
-
-    scores_max_eval = -10
-
     total_steps_both = args.total_epochs_both * int(train.shape[0]/args.training_batch_size+1)
     sample_step = args.sample_step * int(train.shape[0]/args.training_batch_size+1)
     print("Total steps: %d" %total_steps_both)
@@ -130,23 +118,29 @@ def main(args):
     print("Continuous: %d, %d" %(train_con_data.shape[0], train_con_data.shape[1]))
     print("Discrete: %d, %d"%(train_dis_data.shape[0], train_dis_data.shape[1]))
 
-    epoch = 0
-    train_iter_con = DataLoader(train_con_data, batch_size=args.training_batch_size)
-    train_iter_dis = DataLoader(train_dis_data, batch_size=args.training_batch_size)
-    datalooper_train_con = infiniteloop(train_iter_con)
-    datalooper_train_dis = infiniteloop(train_iter_dis)
-
     model_con.load_state_dict(torch.load(f'{ckpt_dir}/model_con.pt'))
     model_dis.load_state_dict(torch.load(f'{ckpt_dir}/model_dis.pt'))
 
     model_con.eval()
     model_dis.eval()
     
+    save_path = args.save_path
+    num_samples = train_con_data.shape[0]
+
+    # Define el número de muestras según el argumento balance
+    if args.balance:
+        print('Creating a balanced oversampled dataset')
+        save_path = save_path.replace('.csv', '_balanced.csv')
+        difference_samples, minority_percentage = compute_difference_samples(dataname)    
+        num_samples = int(difference_samples/minority_percentage) * 2
+        print(f"num_samples: {num_samples}")
+    
     print(f"Start sampling")
     start_time = time.time()
     with torch.no_grad():
-        x_T_con = torch.randn(train_con_data.shape[0], train_con_data.shape[1]).to(device)
-        log_x_T_dis = log_sample_categorical(torch.zeros(train_dis_data.shape, device=device), num_class).to(device)
+        # Usa num_samples para definir x_T_con y log_x_T_dis
+        x_T_con = torch.randn(num_samples, train_con_data.shape[1]).to(device)
+        log_x_T_dis = log_sample_categorical(torch.zeros((num_samples, train_dis_data.shape[1]), device=device), num_class).to(device)
         x_con, x_dis = sampling_with(x_T_con, log_x_T_dis, net_sampler, trainer_dis, categories, args)
 
     x_dis = apply_activate(x_dis, transformer_dis.output_info)
@@ -173,8 +167,19 @@ def main(args):
     idx_name_mapping = {int(key): value for key, value in idx_name_mapping.items()}
 
     syn_df.rename(columns = idx_name_mapping, inplace=True)
+    
+    # if types are str, convert to float
+    for col in syn_df.columns:
+        if syn_df[col].dtype == 'object':
+            syn_df[col] = syn_df[col].astype(float)
+    
+    if args.balance:
+        original_train_df = pd.read_csv(f'data/{args.dataname}/train.csv')
+        print(f"shape of original_train_df: {original_train_df.shape}")
+        target_col_idx = info['target_col_idx'][0] if isinstance(info['target_col_idx'], list) else info['target_col_idx']
+        target_col = original_train_df.columns[target_col_idx]
+        syn_df = balance_dataset(original_train_df, syn_df, target_col, difference_samples)
 
-    save_path = args.save_path
     syn_df.to_csv(save_path, index = False)
 
     end_time = time.time()
