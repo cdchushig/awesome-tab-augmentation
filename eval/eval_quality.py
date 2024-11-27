@@ -70,14 +70,44 @@ def calculate_pcd(real_data, syn_data):
     corr_syn = np.corrcoef(syn_data.T)
     return np.linalg.norm(corr_real - corr_syn)
 
-def calculate_lcm(real_data, syn_data, k=5):
-    """Calculate the Log-Cluster Metric (LCM)."""
+def calculate_lcm(real_data, syn_data, k=2):
+    """
+    Calculate the Log-Cluster Metric (LCM).
+
+    This metric evaluates the similarity between real and synthetic data 
+    based on how they cluster together. It measures the deviation of the 
+    proportion of real data points in each cluster from a balanced distribution (0.5).
+
+    Parameters:
+        real_data (ndarray): Real data as a NumPy array (rows = samples, columns = features).
+        syn_data (ndarray): Synthetic data as a NumPy array (rows = samples, columns = features).
+        k (int, optional): Number of clusters for K-Means. Default is 5.
+
+    Returns:
+        float: The Log-Cluster Metric (LCM), where a lower value indicates 
+               better mixing of real and synthetic data in clusters.
+    """
+    # Combine the real and synthetic data into one dataset
     combined_data = np.vstack((real_data, syn_data))
+
+    # Perform K-Means clustering on the combined dataset
+    # Assign the data points into k clusters
     kmeans = KMeans(n_clusters=k, random_state=42).fit(combined_data)
+
+    # Count the number of real data points in each cluster
     cluster_sizes_real = np.bincount(kmeans.labels_[:real_data.shape[0]], minlength=k)
+
+    # Count the number of synthetic data points in each cluster
     cluster_sizes_syn = np.bincount(kmeans.labels_[real_data.shape[0]:], minlength=k)
+
+    # Compute the proportion of real data points in each cluster
     cluster_ratios = cluster_sizes_real / (cluster_sizes_real + cluster_sizes_syn)
-    return np.log(np.mean((cluster_ratios - 0.5)**2))
+
+    # Compute the mean squared deviation of the cluster ratios from 0.5 (balanced distribution)
+    mean_squared_deviation = np.mean((cluster_ratios - 0.5)**2)
+
+    # Take the natural logarithm of the mean squared deviation to get the final metric
+    return np.log(mean_squared_deviation)
 
 def main():
     # Set dataset and model paths
@@ -116,13 +146,6 @@ def main():
     num_syn_data, cat_syn_data = syn_data[num_col_idx], syn_data[cat_col_idx]
     num_syn_data_np, cat_syn_data_np = num_syn_data.to_numpy(), cat_syn_data.to_numpy().astype('str')
 
-    # Display dataset shapes and column indices
-    print(f"Real data shape: {real_data.shape}")
-    print(f"Synthetic data shape: {syn_data.shape}")
-    print(f"Numerical column indices: {num_col_idx}")
-    print(f"Categorical column indices: {cat_col_idx}")
-    print(f"Target column index: {target_col_idx}")
-
     if model.startswith('great'):
         cat_syn_data_np = cat_syn_data.to_numpy().astype('str')
         
@@ -147,19 +170,15 @@ def main():
     # Calculate Alpha Precision and Beta Recall
     alpha_precision, beta_recall = qual_res['delta_precision_alpha_naive'], qual_res['delta_coverage_beta_naive']
     
-    print(f'Alpha precision: {alpha_precision:.6f}, Beta recall: {beta_recall:.6f}')
-
-    print(f"num_real_data {num_real_data}")
-    print(f"num_syn_data {num_syn_data}")
-
-    # Calculate metrics
+    # Calculate other quality metrics
     kld = calculate_kld(num_real_data_np, num_syn_data_np)
     hd = calculate_hd(num_real_data_np, num_syn_data_np)
     maep = calculate_maep(num_real_data_np, num_syn_data_np)
     rsvr = calculate_rsvr(num_syn_data_np)
     pcd = calculate_pcd(num_real_data_np, num_syn_data_np)
     lcm = calculate_lcm(num_real_data_np, num_syn_data_np)
-    
+
+    print(f'Alpha precision: {alpha_precision:.6f}, Beta recall: {beta_recall:.6f}')
     print(f"KLD: {kld:.6f}, HD: {hd:.6f}, MAEP: {maep:.6f}, RSVR: {rsvr:.6f}, PCD: {pcd:.6f}, LCM: {lcm:.6f}")
     
     # Save results

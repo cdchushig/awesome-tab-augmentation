@@ -50,6 +50,10 @@ def main(args):
     cat_cols = [col for col in cat_cols if col != target_col]
     cat_dims = get_cat_dims(X_train, cat_cols)
     
+    print(f"Number of numerical columns: {len(num_cols)}")
+    print(f"Number of categorical columns: {len(cat_cols)}")
+    print(f"Number of categories: {cat_dims}")
+    
     # preprocess data
     num_prep = make_pipeline(SimpleImputer(strategy='mean'),
                             MinMaxScaler())
@@ -60,6 +64,10 @@ def main(args):
         ('cat', cat_prep, cat_cols)],
         remainder='drop')
     X_train_trans = prep.fit_transform(X_train)
+    
+    print("Transformed data shape: ", X_train_trans.shape)
+    
+    model_prefix = f'baselines/ganos/{args.dataname}'
                 
     # Initialize GAN model with parameters
     gan = WGANGP(write_to_disk=True,
@@ -69,7 +77,7 @@ def main(args):
                 transformer=prep.named_transformers_['cat']['onehotencoder'],
                 cat_cols=cat_cols,
                 use_aux_classifier_loss=True,
-                prefix=f'baselines/ganos/{args.dataname}',
+                prefix=model_prefix,
                 d_updates_per_g=d_updates_per_g, gp_weight=gp_weight)
 
     # Fit the GAN model with arguments
@@ -103,16 +111,16 @@ def main(args):
         )
             
     X_res, y_res = gan.resample(X_train_trans, y=y_train)
-    
-    print("Previous data shape: ", X_train_trans.shape)
-    print("Resampled data shape: ", X_res.shape)
-    
+        
     # Save synthetic data
     syn_df = pd.DataFrame(X_res)
     syn_df[target_col] = y_res
     
     syn_df.to_csv(f'{gan.prefix}/synthetic_balanced.csv', index=False)
-    print(f"Synthetic data saved to {gan.prefix}/synthetic_balanced.csv")
+    print(f"Blanced synthetic data saved to {gan.prefix}/synthetic_balanced.csv")
+    
+    model_dir = os.path.join(gan.prefix, 'models')
+    print("Model saved to ", model_dir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train WGANGP on tabular data')

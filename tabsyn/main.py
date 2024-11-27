@@ -21,7 +21,11 @@ def main(args):
 
     print({'batch_size': batch_size, 'num_epochs': num_epochs, 'lr': lr})
 
-    train_z, _, _, ckpt_path, _ = get_input_train(args)
+    train_z, _, _, _, _ = get_input_train(args)
+    
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    timestamp = time.strftime('%Y%m%d-%H%M%S')
+    ckpt_path = f'{curr_dir}/ckpt/{args.dataname}/{args.model_version}/{timestamp}'
     os.makedirs(ckpt_path, exist_ok=True)
 
     in_dim = train_z.shape[1]

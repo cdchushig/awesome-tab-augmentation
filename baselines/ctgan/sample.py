@@ -16,7 +16,11 @@ def main(args):
         info = json.load(f)
     
     # Load the trained model
-    model_path = f'baselines/ctgan/models/{args.dataname}/model.pth'
+    if args.model_path is not None:
+        model_path = args.model_path
+    else:
+        model_path = f'baselines/ctgan/models/{args.dataname}/model.pth'
+    
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Trained model not found at {model_path}. Please train the model first.")
 
@@ -45,17 +49,19 @@ def main(args):
         target_col = original_train_df.columns[target_col_idx]
         syn_df = balance_dataset(original_train_df, syn_df, target_col, difference_samples)
 
+
+    print(f"Synthetic data saved to {save_path}")
     # Save synthetic data
     syn_df.to_csv(save_path, index=False)
-
-    print(f"Shape of synthetic data: {syn_df.shape}")
-    print(f"Synthetic data saved to {save_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sample from a trained CTGAN model')
 
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset')
-    parser.add_argument('--save_path', type=str, default='data/synthetic.csv', help='Path to save synthetic data')
+    parser.add_argument('--model_path', type=str, default=None, help='Path to trained model')
+    parser.add_argument('--save_path', type=str, default=None, help='Path to save synthetic data')
     parser.add_argument('--balance', type=bool, default=False, help='Balance the synthetic data')
+    
+    args = parser.parse_args()
 
-    sample(args)
+    main(args)

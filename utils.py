@@ -2,11 +2,12 @@ import argparse
 import importlib
 
 def execute_function(method, mode):
+    if mode == 'optimize':
+        mode = 'optuna_search'
+    elif mode == 'train':
+        mode = 'main'
     if method == 'vae':
         mode = 'train'
-    mode = 'main' if mode == 'train' else 'sample'
-
-    if method == 'vae':
         module_name = f"tabsyn.vae.main"
     elif method == 'tabsyn':
         module_name = f"tabsyn.{mode}"
@@ -42,6 +43,8 @@ def get_args():
     parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
 
     ''' configs for CTGAN '''
+    
+    parser.add_argument("--n_trials", type=int, default=25, help="Number of trials for Optuna")
 
     parser.add_argument('--no-header', dest='header', action='store_false',
                         help='The CSV file has no header. Discrete columns will be indices.')
@@ -79,6 +82,10 @@ def get_args():
                         help='Select a discrete column name.')
     parser.add_argument('--sample_condition_column_value', default=None, type=str,
                         help='Specify the value of the selected discrete column.')
+
+    parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs to train')
+    parser.add_argument('--pac', type=int, default=10, help='Number of samples to pack together')
+    parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate for Adam optimizer')
 
    
     ''' configs for GANOS '''

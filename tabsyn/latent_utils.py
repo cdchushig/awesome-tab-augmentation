@@ -141,6 +141,13 @@ def recover_data(syn_num, syn_cat, syn_target, info):
             elif i in set(cat_col_idx):
                 syn_df[i] = syn_cat[:, idx_mapping[i] - len(num_col_idx)]
             else:
+                print(i)
+                print(syn_df.shape)
+                print(syn_target.shape)
+                print(idx_mapping)
+                print(num_col_idx)
+                print(cat_col_idx)
+                print(target_col_idx)
                 syn_df[i] = syn_target[:, idx_mapping[i] - len(num_col_idx) - len(cat_col_idx)]
 
     return syn_df
