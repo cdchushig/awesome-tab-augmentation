@@ -17,3 +17,14 @@ __pycache__/
 **/results/
 
 **/logs/
+
+*.pdf
+*.png
+
+*.pkl
+
+**/workspace/
+
+*.bkp
+.pth
+*.pth
