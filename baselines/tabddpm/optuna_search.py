@@ -6,7 +6,7 @@ import optuna
 
 # Define paths and environment setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
-cwd = os.path.abspath(os.path.join(current_dir, ".."))
+cwd = os.path.abspath(os.path.join(current_dir, "../.."))
 sys.path.append(cwd)
 
 env = os.environ.copy()
@@ -14,87 +14,60 @@ env["PYTHONPATH"] = cwd  # Add cwd to PYTHONPATH
 
 # Objective function for Optuna
 def objective(trial, dataname):
-
-    # VAE hyperparameters
-    max_beta = trial.suggest_float("max_beta", 1e-3, 1e-1, log=True)
-    min_beta = trial.suggest_float("min_beta", 1e-5, 1e-3, log=True)
-    lambd = trial.suggest_float("lambd", 0.2, 1.0)
-    
-    vae_lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
-    wd = trial.suggest_float("wd", 1e-10, 1e-2, log=True)
-    batch_size = trial.suggest_int('batch_size', 64, 512, step=64)
-    vae_epochs = trial.suggest_int('vae_epochs', 500, 3000, step=500)
-
-    # Suggest hyperparameters
-    num_epochs = trial.suggest_int('num_epochs', 2000, 12000, step=2000)
-    lr = trial.suggest_float('lr', 1e-4, 1e-2, log=True)
-    latent_dim = trial.suggest_int('latent_dim', 32, 128, step=32)  # MLP hidden layer width
+    # Suggest hyperparameters to tune
+    num_epochs = trial.suggest_int("num_epochs", 1000, 20000, step=100)
+    batch_size = trial.suggest_int("batch_size", 32, 128, step=16)
+    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
+    gp_weight = trial.suggest_float("gp_weight", 1.0, 20.0, step=1.0)
+    d_updates_per_g = trial.suggest_int("d_updates_per_g", 1, 5)
 
     # Paths to scripts
-    vae_script = os.path.join("tabsyn", "vae", "main.py")
-    main_script = os.path.join("tabsyn", "main.py")
-    sample_script = os.path.join("tabsyn", "sample.py")
+    main_script = os.path.join("baselines", "ganos", "main.py")
+    sample_script = os.path.join("baselines", "ganos", "sample.py")
     evaluate_script = os.path.join("eval", "eval_quality.py")
-    
-    # Train the VAE model
-    vae_cmd = [
-        "python", vae_script,
-        "--dataname", dataname,
-        "--max_beta", str(max_beta),
-        "--min_beta", str(min_beta),
-        "--lambd", str(lambd),
-        "--lr", str(vae_lr),
-        "--wd", str(wd),
-        "--batch_size", str(batch_size),
-        "--num_epochs", str(vae_epochs)
-    ]
-     
-    vae_result = subprocess.run(vae_cmd, text=True, cwd=cwd, env=env, capture_output=True)
-    if vae_result.returncode != 0:
-        raise RuntimeError(f"VAE script failed with error:\n{vae_result.stderr}")
 
     # Train the model
     train_cmd = [
         "python", main_script,
         "--dataname", dataname,
-        "--batch_size", str(batch_size),
         "--num_epochs", str(num_epochs),
+        "--batch_size", str(batch_size),
         "--lr", str(lr),
-        "--latent_dim", str(latent_dim),
+        "--gp_weight", str(gp_weight),
+        "--d_updates_per_g", str(d_updates_per_g),
     ]
 
-    result = subprocess.run(train_cmd, text=True, cwd=cwd, env=env, capture_output=True)
+    result = subprocess.run(train_cmd, capture_output=True, text=True, cwd=cwd, env=env)
     if result.returncode != 0:
         raise RuntimeError(f"Training script failed with error:\n{result.stderr}")
-
+    
     # Extract model path
     if "Model saved to " in result.stdout:
-        model_path = result.stdout.split("Model saved to ")[1].strip()
-        print(f"Model saved to {model_path}")
+        model_dir = result.stdout.split("Model saved to ")[1].strip()
+        print(f"Model loaded from {model_dir}")
     else:
         raise RuntimeError("Model path not found in output.")
 
     # Generate synthetic data
-    model_dir = os.path.dirname(model_path)
     save_path = os.path.join(model_dir, "synthetic", f"{dataname}.csv")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     sample_cmd = [
         "python", sample_script,
-        "--dataname", dataname,
-        "--latent_dim", str(latent_dim),
+        "--model_dir", model_dir,
+        "--save_path", save_path,
+        "--dataname", dataname
     ]
 
     sample_result = subprocess.run(sample_cmd, capture_output=True, text=True, cwd=cwd, env=env)
-    
-    print(sample_result.stdout)
-    
     if sample_result.returncode != 0:
         raise RuntimeError(f"Sampling script failed with error:\n{sample_result.stderr}")
 
+    
     # Extract synthetic data path
-    if "Saving sampled data to" in sample_result.stdout:
-        sampled_path = sample_result.stdout.split("Saving sampled data to")[1].strip()
+    if "Synthetic data saved to " in sample_result.stdout:
+        synthetic_data_path = sample_result.stdout.split("Synthetic data saved to ")[1].strip()
+        print(f"Synthetic data loaded from {synthetic_data_path}")
     else:
         raise RuntimeError("Synthetic data path not found in output.")
 
@@ -102,11 +75,11 @@ def objective(trial, dataname):
     evaluate_cmd = [
         "python", evaluate_script,
         "--dataname", dataname,
-        "--model", "tabsyn",
-        "--path", sampled_path
+        "--model", "ganos",
+        "--path", synthetic_data_path,
     ]
 
-    quality_result = subprocess.run(evaluate_cmd, capture_output=True, text=True, cwd=cwd)
+    quality_result = subprocess.run(evaluate_cmd, capture_output=True, text=True, cwd=cwd, env=env)
     if quality_result.returncode != 0:
         raise RuntimeError(f"Evaluation script failed with error:\n{quality_result.stderr}")
 
@@ -131,19 +104,18 @@ def main(args):
     study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
 
-    # Print the best parameters
-    print("Best hyperparameters:", study.best_params)
-    print("Best score:", study.best_value)
-
-    # Save the study results
+    # Save results
     optuna_results_dir = os.path.join(current_dir, "optuna_results")
     os.makedirs(optuna_results_dir, exist_ok=True)
     study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, "trials.csv"))
-    
-    # write results to a text file
+
+    # Write results to a text file
     with open(os.path.join(optuna_results_dir, "results.txt"), "w") as f:
         f.write(f"Best hyperparameters: {study.best_params}\n")
         f.write(f"Best score: {study.best_value}\n")
+
+    print("Best hyperparameters:", study.best_params)
+    print("Best score:", study.best_value)
 
 # Entry point
 if __name__ == "__main__":

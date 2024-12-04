@@ -17,7 +17,7 @@ def main(args):
     batch_size = args.batch_size
     num_epochs = args.num_epochs
     lr = args.lr
-    early_stopping_patience = 500
+    early_stopping_patience = 100
     latent_dim = args.latent_dim
 
     print({'batch_size': batch_size, 'num_epochs': num_epochs, 'lr': lr})
@@ -25,8 +25,7 @@ def main(args):
     train_z, _, _, _, _ = get_input_train(args)
     
     curr_dir = os.path.dirname(os.path.abspath(__file__))
-    timestamp = time.strftime('%Y%m%d-%H%M%S')
-    ckpt_path = f'{curr_dir}/ckpt/{args.dataname}/{args.model_version}/{timestamp}'
+    ckpt_path = f'{curr_dir}/ckpt/{args.dataname}'
     os.makedirs(ckpt_path, exist_ok=True)
 
     in_dim = train_z.shape[1]

@@ -29,7 +29,7 @@ def main(args):
 
     mean = train_z.mean(0)
 
-    denoise_fn = MLPDiffusion(in_dim, 1024).to(device)
+    denoise_fn = MLPDiffusion(in_dim, args.latent_dim).to(device)
     
     model = Model(denoise_fn = denoise_fn, hid_dim = train_z.shape[1]).to(device)
 
@@ -89,6 +89,7 @@ if __name__ == '__main__':
     parser.add_argument('--steps', type=int, default=None, help='Number of function evaluations.')
     parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
     parser.add_argument('--save_path', type=str, default=None, help='Path to save the model')
+    parser.add_argument('--latent_dim', type=int, default=1024, help='Latent dimension')
 
     args = parser.parse_args()
 

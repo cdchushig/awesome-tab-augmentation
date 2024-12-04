@@ -18,6 +18,7 @@ __pycache__/
 
 **/logs/
 
+!papers_datasets_data_augment/*.pdf
 *.pdf
 *.png
 
