@@ -43,7 +43,8 @@ def get_args():
     parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
 
     ''' configs for CTGAN '''
-    
+    parser.add_argument('--model_path', type=str, default=None, help='Path to trained model')
+
     parser.add_argument("--n_trials", type=int, default=25, help="Number of trials for Optuna")
 
     parser.add_argument('--no-header', dest='header', action='store_false',
@@ -174,6 +175,7 @@ def get_args():
     parser.add_argument('--n_head', type=int, default=1, help='Number of heads.')
     parser.add_argument('--factor', type=int, default=32, help='Factor for the model.')
     parser.add_argument('--model_version' , type=str, default='', help='datatimte of the model version')
+    parser.add_argument('--latent_dim', type=int, default=64, help='Latent dimension')
 
     # configs for sampling
     parser.add_argument('--save_path', type=str, default=None, help='Path to save synthetic data.')

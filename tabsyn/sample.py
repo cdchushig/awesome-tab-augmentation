@@ -21,6 +21,9 @@ def main(args):
     save_path = args.save_path
     balance = args.balance
     
+    if save_path is None:
+        save_path = f'synthetic/{dataname}/tabsyn.csv'
+    
     train_z, _, _, ckpt_path, info, num_inverse, cat_inverse = get_input_generate(args)
     in_dim = train_z.shape[1] 
 
@@ -85,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--epoch', type=int, default=None, help='Epoch.')
     parser.add_argument('--steps', type=int, default=None, help='Number of function evaluations.')
     parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
+    parser.add_argument('--save_path', type=str, default=None, help='Path to save the model')
 
     args = parser.parse_args()
 
@@ -93,3 +97,5 @@ if __name__ == '__main__':
         args.device = f'cuda:{args.gpu}'
     else:
         args.device = 'cpu'
+        
+    main(args)

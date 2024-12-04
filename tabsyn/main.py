@@ -18,6 +18,7 @@ def main(args):
     num_epochs = args.num_epochs
     lr = args.lr
     early_stopping_patience = 500
+    latent_dim = args.latent_dim
 
     print({'batch_size': batch_size, 'num_epochs': num_epochs, 'lr': lr})
 
@@ -35,7 +36,7 @@ def main(args):
         batch_size = len(train_z)
 
     train_loader = DataLoader(train_z, batch_size=batch_size, shuffle=True, num_workers=4)
-    denoise_fn = MLPDiffusion(in_dim, 1024).to(device)
+    denoise_fn = MLPDiffusion(in_dim, latent_dim).to(device)
     model = Model(denoise_fn=denoise_fn, hid_dim=in_dim).to(device)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0)
@@ -44,6 +45,9 @@ def main(args):
     print("Model with parameters:", sum(p.numel() for p in model.parameters()))
     
     train_model(model, train_loader, optimizer, scheduler, device, num_epochs, early_stopping_patience, ckpt_path)
+    
+    model_path = os.path.join(ckpt_path, 'model.pt')
+    print(f'Model saved to {model_path}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training of TabSyn')
@@ -53,7 +57,8 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=128, help='batch size')
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument('--model_version', type=str, default='', help='datetime of the model version')
-
+    parser.add_argument('--latent_dim', type=int, default=64, help='Latent dimension')
+    
     args = parser.parse_args()
     args.device = f'cuda:{args.gpu}' if args.gpu != -1 and torch.cuda.is_available() else 'cpu'
     
