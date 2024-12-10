@@ -1,0 +1,2 @@
+Best hyperparameters: {'max_beta': 0.05303051270713357, 'min_beta': 0.00035782372009032884, 'lambd': 0.35920787492401396, 'lr': 0.00013924766878401526, 'wd': 2.6667200660817674e-06, 'batch_size': 320, 'vae_epochs': 2500, 'num_epochs': 6000, 'latent_dim': 128}
+Best score: 1.1378865

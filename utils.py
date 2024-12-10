@@ -154,6 +154,12 @@ def get_args():
     parser.add_argument('--beta_start', type=float, default=1e-4, help='Initial beta for diffusion.')
     parser.add_argument('--beta_end', type=float, default=0.02, help='Final beta for diffusion.')
     parser.add_argument('--scheduler', type=str, default='linear', help='Scheduler type for the diffusion process.')
+    parser.add_argument('--weight_decay', type = float, default = 1e-6)
+    parser.add_argument('--task_type', type = str, default = 'binclass')
+    parser.add_argument('--model_type', type = str, default = 'mlp')    
+    parser.add_argument('--num_timesteps', type = int, default = 1000)
+    parser.add_argument('--gaussian_loss_type', type = str, default = 'mse')
+    parser.add_argument('--num_numerical_features', type = int, default = 6)
 
     # configs for SMOTE
     parser.add_argument('--cat_encoding', type=str, default='one-hot', help='Encoding method for categorical features')

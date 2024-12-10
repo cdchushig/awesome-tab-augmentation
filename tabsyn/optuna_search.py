@@ -20,14 +20,14 @@ def objective(trial, dataname):
     min_beta = trial.suggest_float("min_beta", 1e-5, 1e-3, log=True)
     lambd = trial.suggest_float("lambd", 0.2, 1.0)
     
-    vae_lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
-    wd = trial.suggest_float("wd", 1e-10, 1e-2, log=True)
+    vae_lr = trial.suggest_float("vae_lr", 1e-5, 1e-3, log=True)
+    wd = trial.suggest_float("wd", 1e-7, 1e-4, log=True)
     batch_size = trial.suggest_int('batch_size', 64, 512, step=64)
     vae_epochs = trial.suggest_int('vae_epochs', 500, 3000, step=500)
 
     # Suggest hyperparameters
     num_epochs = trial.suggest_int('num_epochs', 2000, 12000, step=2000)
-    lr = trial.suggest_float('lr', 1e-4, 1e-2, log=True)
+    tabsyn_lr = trial.suggest_float('tabsyn_lr', 1e-4, 1e-2, log=True)
     latent_dim = trial.suggest_int('latent_dim', 32, 128, step=32)  # MLP hidden layer width
 
     # Paths to scripts
@@ -59,7 +59,7 @@ def objective(trial, dataname):
         "--dataname", dataname,
         "--batch_size", str(batch_size),
         "--num_epochs", str(num_epochs),
-        "--lr", str(lr),
+        "--lr", str(tabsyn_lr),
         "--latent_dim", str(latent_dim),
     ]
 

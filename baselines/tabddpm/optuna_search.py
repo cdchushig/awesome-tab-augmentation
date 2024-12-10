@@ -22,8 +22,8 @@ def objective(trial, dataname):
     d_updates_per_g = trial.suggest_int("d_updates_per_g", 1, 5)
 
     # Paths to scripts
-    main_script = os.path.join("baselines", "ganos", "main.py")
-    sample_script = os.path.join("baselines", "ganos", "sample.py")
+    main_script = os.path.join("baselines", "tabddpm", "main.py")
+    sample_script = os.path.join("baselines", "tabddpm", "sample.py")
     evaluate_script = os.path.join("eval", "eval_quality.py")
 
     # Train the model

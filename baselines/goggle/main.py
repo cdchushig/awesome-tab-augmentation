@@ -9,7 +9,7 @@ import json
 
 from utils_train import preprocess
 
-from baselines.goggle.GoggleModel import GoggleModel
+import baselines.goggle.GoggleModel
 
 warnings.filterwarnings('ignore')
 

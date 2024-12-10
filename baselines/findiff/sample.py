@@ -45,7 +45,7 @@ def main(args):
     train_num_scaled, train_cat_scaled, label_tensor, num_scaler, vocab_per_attr, label_encoder = loaded_data
 
     # Create DataLoader
-    dataloader, label_torch = create_dataloader(train_cat_scaled, train_num_scaled, label_tensor, args.batch_size)
+    _, label_torch = create_dataloader(train_cat_scaled, train_num_scaled, label_tensor, args.batch_size)
 
     n_cat_tokens = len(np.unique(train_df[cat_attrs]))
     cat_dim = args.cat_emb_dim * len(cat_attrs)
@@ -61,13 +61,16 @@ def main(args):
     
     dataname = args.dataname
     curr_dir = os.path.dirname(os.path.abspath(__file__))
-    ckpt_dir = f'{curr_dir}/ckpt/{dataname}/'   
+    ckpt_dir = f'{curr_dir}/ckpt/{dataname}'   
     
-    synthesizer_model.load_state_dict(torch.load(f'{ckpt_dir}/mlp.pth'))
+    synthesizer_model.load_state_dict(torch.load(f'{ckpt_dir}/mlp_model.pt'))
     diffuser_model = torch.load(f'{ckpt_dir}/diffuser.pth')
     
     samples = generate_samples(synthesizer_model, diffuser_model, encoded_dim, label_torch, args.diff_steps, device)
     samples_decoded = decode_samples(samples, cat_dim, num_scaler, vocab_per_attr, label_encoder, cat_attrs, num_attrs, synthesizer_model=synthesizer_model, cat_emb_dim=args.cat_emb_dim)
+    
+    # reorder columns as in original dataset
+    samples_decoded = samples_decoded[train_df.columns]
 
     print("Samples generated successfully.")
     
@@ -75,6 +78,7 @@ def main(args):
     output_dir = f'synthetic/{args.dataname}'
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, 'findiff.csv')
+    
     samples_decoded.to_csv(output_path, index=False)
     
     print(f"Shape of synthetic data: {samples_decoded.shape}")

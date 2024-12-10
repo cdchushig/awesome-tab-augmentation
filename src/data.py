@@ -253,7 +253,6 @@ def cat_process_nans(X: ArrayDict, policy: Optional[CatNanPolicy]) -> ArrayDict:
         else:
             util.raise_unknown('categorical NaN policy', policy)
     else:
-        assert policy is None
         X_new = X
     return X_new
 

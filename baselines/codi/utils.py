@@ -136,7 +136,7 @@ def make_negative_condition(x_0_con, x_0_dis):
 def train_model(model_con, model_dis, datalooper_train_con, datalooper_train_dis, trainer, trainer_dis, optim_con, optim_dis, 
                 sched_con, sched_dis, device, args, ckpt_dir, categories, train, early_stopping_patience=500):
     
-    writer = SummaryWriter(log_dir=os.path.join(ckpt_dir, 'logs'))
+    writer = SummaryWriter(log_dir=os.path.join(ckpt_dir, 'logs'))    
     best_loss = float('inf')
     
     # Original calculations for steps based on the dataset size
@@ -212,10 +212,14 @@ def train_model(model_con, model_dis, datalooper_train_con, datalooper_train_dis
             patience = 0
             torch.save(model_con.state_dict(), f'{ckpt_dir}/model_con.pt')
             torch.save(model_dis.state_dict(), f'{ckpt_dir}/model_dis.pt')
+            print(f"Model saved to: {ckpt_dir}")
         else:
             patience += 1
             if patience >= early_stopping_patience:
                 print(f"Early stopping triggered at epoch {epoch + 1}. Best loss: {best_loss:.3f}")
+                torch.save(model_con.state_dict(), f'{ckpt_dir}/model_con.pt')
+                torch.save(model_dis.state_dict(), f'{ckpt_dir}/model_dis.pt')
+                print(f"Model saved to: {ckpt_dir}")
                 break
 
         # Save checkpoints every 1000 epochs

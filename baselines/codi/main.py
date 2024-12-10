@@ -14,6 +14,7 @@ from baselines.codi.models.tabular_unet import tabularUnet
 from baselines.codi.diffusion_discrete import MultinomialDiffusion
 from baselines.codi.utils import *
 from utils_train import preprocess
+import pickle
 
 def main(args):
     # Print training parameters for verification
@@ -84,7 +85,15 @@ def main(args):
         device=device, args=args, ckpt_dir=ckpt_dir,
         categories=categories, train=train, early_stopping_patience=500,
     )
-
+        
+    print("model saved to: ", ckpt_dir)
+    
+    # save net_sampler
+    with open(os.path.join(ckpt_dir, 'net_sampler.pkl'), 'wb') as f:
+        pickle.dump(net_sampler, f)
+        
+    with open(os.path.join(ckpt_dir, 'trainer_dis.pkl'), 'wb') as f:
+        pickle.dump(trainer_dis, f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training script for continuous and discrete models')
@@ -92,23 +101,30 @@ if __name__ == '__main__':
     # Arguments
     parser.add_argument('--dataname', type=str, default='adult', help='Dataset name')
     parser.add_argument('--gpu', type=int, default=0, help='GPU index')
+    
     parser.add_argument('--training_batch_size', type=int, default=4096, help='Batch size')
     parser.add_argument('--total_epochs_both', type=int, default=1000, help='Total epochs')
     parser.add_argument('--sample_step', type=int, default=100, help='Sampling step')
-    parser.add_argument('--beta_1', type=float, default=0.1, help='Beta 1')
-    parser.add_argument('--beta_T', type=float, default=0.9, help='Beta T')
-    parser.add_argument('--T', type=int, default=1000, help='Timesteps')
-    parser.add_argument('--lr_con', type=float, default=1e-4, help='Learning rate for continuous model')
-    parser.add_argument('--lr_dis', type=float, default=1e-4, help='Learning rate for discrete model')
-    parser.add_argument('--grad_clip', type=float, default=1.0, help='Gradient clipping value')
-    parser.add_argument('--lambda_con', type=float, default=1.0, help='Lambda for continuous model')
-    parser.add_argument('--lambda_dis', type=float, default=1.0, help='Lambda for discrete model')
-    parser.add_argument('--mean_type', type=str, default='eps', help='Mean type for diffusion')
-    parser.add_argument('--var_type', type=str, default='learned', help='Variance type for diffusion')
+    parser.add_argument('--T', type=int, default=50, help='total diffusion steps')
+    parser.add_argument('--beta_1', type=float, default=0.00001, help='start beta value')
+    parser.add_argument('--beta_T', type=float, default=0.02, help='end beta value')
+    parser.add_argument('--lr_con', type=float, default=2e-03, help='target learning rate')
+    parser.add_argument('--lr_dis', type=float, default=2e-03, help='target learning rate')
+    parser.add_argument('--grad_clip', type=float, default=1., help="gradient norm clipping")
+
+    # Continuous diffusion model
+    parser.add_argument('--mean_type', type=str, default='epsilon', choices=['xprev', 'xstart', 'epsilon'], help='predict variable')
+    parser.add_argument('--var_type', type=str, default='fixedsmall', choices=['fixedlarge', 'fixedsmall'], help='variance type')
+    # Contrastive Learning
+    parser.add_argument('--ns_method', type=int, default=0, help='negative condition method')
+    parser.add_argument('--lambda_con', type=float, default=0.2, help='lambda_con')
+    parser.add_argument('--lambda_dis', type=float, default=0.2, help='lambda_dis')
+    
     parser.add_argument('--encoder_dim_con', type=str, default='64,128', help='Encoder dimensions for continuous model')
     parser.add_argument('--encoder_dim_dis', type=str, default='64,128', help='Encoder dimensions for discrete model')
     parser.add_argument('--nf_con', type=int, default=64, help='Feature size for continuous model')
     parser.add_argument('--nf_dis', type=int, default=64, help='Feature size for discrete model')
+    parser.add_argument('--activation', type=str, default='relu', help='activation')
 
     args = parser.parse_args()
     main(args)

@@ -146,6 +146,8 @@ def train(
     # zero.improve_reproducibility(seed)
 
     T = src.Transformations(**T_dict)
+    
+    print(T)
 
 
     dataset = make_dataset(

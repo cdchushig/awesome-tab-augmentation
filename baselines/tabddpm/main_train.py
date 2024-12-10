@@ -20,14 +20,12 @@ def main(args):
         os.makedirs(model_save_path)
     
     args.train = True
-    raw_config = src.load_config(config_path)
+    #raw_config = src.load_config(config_path)
 
-    ''' 
-    Modification of configs
-    '''
     print('START TRAINING')
     
-    train(
+    
+    """train(
         **raw_config['train']['main'],
         **raw_config['diffusion_params'],
         model_save_path=model_save_path,
@@ -38,12 +36,74 @@ def main(args):
         T_dict=raw_config['train']['T'],
         num_numerical_features=raw_config['num_numerical_features'],
         device=device
-    )
+    )"""
+    
+    T_dict = {
+        "seed": 0,
+        "normalization": "quantile",
+        "num_nan_policy": "mean",
+        "cat_nan_policy": None,
+        "cat_min_frequency": None,
+        "cat_encoding": None,
+        "y_policy": "default",
+    }
+    
+    model_params = {
+        "num_classes": 2,
+        "is_y_cond": False,
+        "rtdl_params": {
+            "d_layers": [1024, 2048, 2048, 1024],
+            "dropout": 0.0,
+        }
+    }
+    
+    steps = args.steps
+    lr = args.lr
+    weight_decay = args.weight_decay
+    batch_size = args.batch_size
+    
+    task_type = args.task_type
+    model_type = args.model_type
+    num_timesteps = args.num_timesteps
+    gaussian_loss_type = args.gaussian_loss_type
+    scheduler = args.scheduler
+    num_numerical_features = args.num_numerical_features
 
+    train(
+        model_save_path=model_save_path,
+        real_data_path=real_data_path,
+        steps=steps,
+        lr=lr,
+        weight_decay=weight_decay,
+        batch_size=batch_size,
+        task_type=task_type,
+        model_type=model_type,
+        model_params=model_params,
+        num_timesteps=num_timesteps,
+        gaussian_loss_type=gaussian_loss_type,
+        scheduler=scheduler,
+        T_dict=T_dict,
+        num_numerical_features=num_numerical_features,
+        device=device,
+    )
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', metavar='FILE')
     parser.add_argument('--dataname', type = str, default = 'adult')
     parser.add_argument('--gpu', type = int, default=0)
+    
+    # training main params
+    parser.add_argument('--steps', type = int, default = 100000)
+    parser.add_argument('--lr', type = float, default = 1e-3)
+    parser.add_argument('--weight_decay', type = float, default = 1e-6)
+    parser.add_argument('--batch_size', type = int, default = 64)
+    
+    parser.add_argument('--task_type', type = str, default = 'binclass')
+    parser.add_argument('--model_type', type = str, default = 'mlp')    
+    parser.add_argument('--num_timesteps', type = int, default = 1000)
+    parser.add_argument('--gaussian_loss_type', type = str, default = 'mse')
+    parser.add_argument('--scheduler', type = str, default = 'linear')
+    parser.add_argument('--num_numerical_features', type = int, default = 6)
 
     args = parser.parse_args()
