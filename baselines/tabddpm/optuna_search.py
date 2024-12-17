@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import sys
 import optuna
+from datetime import datetime
 
 # Define paths and environment setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,38 +13,52 @@ sys.path.append(cwd)
 env = os.environ.copy()
 env["PYTHONPATH"] = cwd  # Add cwd to PYTHONPATH
 
+
 # Objective function for Optuna
-def objective(trial, dataname):
-    # Suggest hyperparameters to tune
-    num_epochs = trial.suggest_int("num_epochs", 1000, 20000, step=100)
-    batch_size = trial.suggest_int("batch_size", 32, 128, step=16)
-    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
-    gp_weight = trial.suggest_float("gp_weight", 1.0, 20.0, step=1.0)
-    d_updates_per_g = trial.suggest_int("d_updates_per_g", 1, 5)
+def objective(trial, dataname, best_params=None):
+    if best_params:
+        steps = best_params["steps"]
+        lr = best_params["lr"]
+        weight_decay = best_params["weight_decay"]
+        batch_size = best_params["batch_size"]
+        num_timesteps = best_params["num_timesteps"]
+        scheduler = best_params["scheduler"]
+        d_layers = best_params["d_layers"]
+    else:            
+        # Suggest hyperparameters to tune
+        steps = trial.suggest_int("steps", 5e4, 5e5, step=5e4)
+        lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
+        weight_decay = trial.suggest_float("weight_decay", 1e-7, 1e-4, log=True)
+        batch_size = trial.suggest_int("batch_size", 32, 128, step=16)
+        num_timesteps = trial.suggest_int("num_timesteps", 500, 2000, step=500)
+        scheduler = trial.suggest_categorical("scheduler", ["linear", "cosine"])
+        d_layers = trial.suggest_categorical("d_layers", ["1024, 2048, 2048, 1024", "512, 1024, 1024, 512", "256, 512, 512, 256", "128, 256, 256, 128"])
 
     # Paths to scripts
-    main_script = os.path.join("baselines", "tabddpm", "main.py")
-    sample_script = os.path.join("baselines", "tabddpm", "sample.py")
+    main_script = os.path.join("baselines", "tabddpm", "main_train.py")
+    sample_script = os.path.join("baselines", "tabddpm", "main_sample.py")
     evaluate_script = os.path.join("eval", "eval_quality.py")
 
     # Train the model
     train_cmd = [
         "python", main_script,
         "--dataname", dataname,
-        "--num_epochs", str(num_epochs),
-        "--batch_size", str(batch_size),
+        "--steps", str(steps),
         "--lr", str(lr),
-        "--gp_weight", str(gp_weight),
-        "--d_updates_per_g", str(d_updates_per_g),
+        "--weight_decay", str(weight_decay),
+        "--batch_size", str(batch_size),
+        "--num_timesteps", str(num_timesteps),
+        "--scheduler", scheduler,
+        "--d_layers", d_layers,
     ]
 
-    result = subprocess.run(train_cmd, capture_output=True, text=True, cwd=cwd, env=env)
+    result = subprocess.run(train_cmd, text=True, cwd=cwd, env=env, capture_output=True)
     if result.returncode != 0:
         raise RuntimeError(f"Training script failed with error:\n{result.stderr}")
     
     # Extract model path
-    if "Model saved to " in result.stdout:
-        model_dir = result.stdout.split("Model saved to ")[1].strip()
+    if "Model saved to: " in result.stdout:
+        model_dir = result.stdout.split("Model saved to: ")[1].strip()
         print(f"Model loaded from {model_dir}")
     else:
         raise RuntimeError("Model path not found in output.")
@@ -54,15 +69,14 @@ def objective(trial, dataname):
 
     sample_cmd = [
         "python", sample_script,
-        "--model_dir", model_dir,
+        "--dataname", dataname,
         "--save_path", save_path,
-        "--dataname", dataname
+        "--d_layers", d_layers,
     ]
 
-    sample_result = subprocess.run(sample_cmd, capture_output=True, text=True, cwd=cwd, env=env)
+    sample_result = subprocess.run(sample_cmd, text=True, cwd=cwd, env=env, capture_output=True)
     if sample_result.returncode != 0:
         raise RuntimeError(f"Sampling script failed with error:\n{sample_result.stderr}")
-
     
     # Extract synthetic data path
     if "Synthetic data saved to " in sample_result.stdout:
@@ -101,21 +115,30 @@ def objective(trial, dataname):
 
 # Main function
 def main(args):
+    
+    date = datetime.now().strftime("%Y-%m-%d_%H-%M") 
+    date_str = date.replace("-", "_")
+    
     study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
 
     # Save results
     optuna_results_dir = os.path.join(current_dir, "optuna_results")
     os.makedirs(optuna_results_dir, exist_ok=True)
-    study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, "trials.csv"))
+    study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, f"trials_{date_str}.csv"))
 
     # Write results to a text file
-    with open(os.path.join(optuna_results_dir, "results.txt"), "w") as f:
+    with open(os.path.join(optuna_results_dir, f"results_{date_str}.txt"), "w") as f:
         f.write(f"Best hyperparameters: {study.best_params}\n")
         f.write(f"Best score: {study.best_value}\n")
 
     print("Best hyperparameters:", study.best_params)
     print("Best score:", study.best_value)
+
+    # Ejecutar con los mejores parámetros encontrados por Optuna
+    print("\nEjecutando con los mejores parámetros encontrados por Optuna...")
+    best_params = study.best_params
+    objective(None, args.dataname, best_params=best_params)
 
 # Entry point
 if __name__ == "__main__":

@@ -6,13 +6,19 @@ def execute_function(method, mode):
         mode = 'optuna_search'
     elif mode == 'train':
         mode = 'main'
+        
     if method == 'vae':
         mode = 'train'
         module_name = f"tabsyn.vae.main"
     elif method == 'tabsyn':
         module_name = f"tabsyn.{mode}"
     elif method == 'tabddpm':
-        module_name = f"baselines.tabddpm.main_train" if mode == 'main' else f"baselines.tabddpm.main_sample"
+        if mode == 'train' or mode == 'main':
+            module_name = f"baselines.tabddpm.main_train"
+        elif mode == 'sample':
+            module_name = f"baselines.tabddpm.main_sample"
+        else:
+            module_name = f"baselines.tabddpm.{mode}"
     else:
         module_name = f"baselines.{method}.{mode}"
 
@@ -30,6 +36,8 @@ def execute_function(method, mode):
 
 def get_args():
     parser = argparse.ArgumentParser(description='Pipeline')
+    
+    parser.add_argument('--params', type=str, default=None, help='Path to the hyperparameters file.')
 
     # General configs
     parser.add_argument('--dataname', type=str, default='adult', help='Name of dataset.')
@@ -41,6 +49,8 @@ def get_args():
     parser.add_argument('--eval_batch_size', type=int, default=2100, help='batch size')
     parser.add_argument('--training_batch_size', type=int, default=4096, help='batch size')
     parser.add_argument('--balance', type=bool, default=False, help='wether to create a balanced oversampled dataset to train a classifier.')
+    
+    parser.add_argument('--d_layers', default ="1024, 2048, 2048, 1024")
 
     ''' configs for CTGAN '''
     parser.add_argument('--model_path', type=str, default=None, help='Path to trained model')
@@ -95,7 +105,7 @@ def get_args():
     parser.add_argument('--d_updates_per_g', type=int, default=3, help='Number of discriminator updates per generator update')
     parser.add_argument('--num_cols', type=int, default=0, help='Number of columns')
     parser.add_argument('--cat_dims', type=str, default='', help='Number of categories per categorical feature')
-    parser.add_argument('--model_dir', type=str, default='model', help='Model directory')
+    parser.add_argument('--model_dir', type=str, default=None, help='Model directory')
 
     ''' configs for GReaT '''
 

@@ -1,0 +1,3 @@
+,number,value,datetime_start,datetime_complete,duration,params_batch_size,params_d_layers,params_lr,params_num_timesteps,params_scheduler,params_steps,params_weight_decay,state
+0,0,-6.6515415,2024-12-16 10:53:31.107247,2024-12-16 10:54:36.268571,0 days 00:01:05.161324,64,"1024, 2048, 2048, 1024",0.0032847711177515404,500,cosine,15,3.466555293990495e-07,COMPLETE
+1,1,-6.582383,2024-12-16 10:54:36.269149,2024-12-16 10:55:43.854250,0 days 00:01:07.585101,64,"1024, 2048, 2048, 1024",0.0004435918535441872,500,cosine,20,1.0839645102905502e-06,COMPLETE

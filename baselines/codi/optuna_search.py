@@ -4,6 +4,8 @@ import argparse
 import sys
 import optuna
 
+from datetime import datetime
+
 # Define paths and environment setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
 cwd = os.path.abspath(os.path.join(current_dir, "../.."))
@@ -13,18 +15,29 @@ env = os.environ.copy()
 env["PYTHONPATH"] = cwd  # Add cwd to PYTHONPATH
 
 # Objective function for Optuna
-def objective(trial, dataname):
-    # Suggest hyperparameters to tune
-    training_batch_size = trial.suggest_int("training_batch_size", 128, 1024, step=64)
-    total_epochs_both = trial.suggest_int("total_epochs_both", 500, 2000, step=100)
-    lr_con = trial.suggest_float("lr_con", 1e-5, 1e-3, log=True)
-    lr_dis = trial.suggest_float("lr_dis", 1e-5, 1e-3, log=True)
-    beta_1 = trial.suggest_float("beta_1", 0.0001, 0.001, log=True)
-    beta_T = trial.suggest_float("beta_T", 0.01, 0.1, log=True)
-    T = trial.suggest_int("T", 500, 2000, step=100)
-    
-    encoder_dim_con = trial.suggest_categorical("encoder_dim_con", ["64, 128", "128, 256", "256, 512"])
-    encoder_dim_dis = trial.suggest_categorical("encoder_dim_dis", ["64, 128", "128, 256", "256, 512"])
+def objective(trial, dataname, best_params=None):
+    if best_params:
+        training_batch_size = best_params["training_batch_size"]
+        total_epochs_both = best_params["total_epochs_both"]
+        lr_con = best_params["lr_con"]
+        lr_dis = best_params["lr_dis"]
+        beta_1 = best_params["beta_1"]
+        beta_T = best_params["beta_T"]
+        T = best_params["T"]
+        encoder_dim_con = best_params["encoder_dim_con"]
+        encoder_dim_dis = best_params["encoder_dim_dis"]
+    else:
+        # Suggest hyperparameters to tune
+        training_batch_size = trial.suggest_int("training_batch_size", 128, 1024, step=64)
+        total_epochs_both = trial.suggest_int("total_epochs_both", 10000, 40000, step=10000)
+        lr_con = trial.suggest_float("lr_con", 1e-5, 1e-3, log=True)
+        lr_dis = trial.suggest_float("lr_dis", 1e-5, 1e-3, log=True)
+        beta_1 = trial.suggest_float("beta_1", 0.0001, 0.001, log=True)
+        beta_T = trial.suggest_float("beta_T", 0.01, 0.1, log=True)
+        T = trial.suggest_int("T", 500, 2000, step=100)
+        
+        encoder_dim_con = trial.suggest_categorical("encoder_dim_con", ["64, 128", "128, 256", "256, 512"])
+        encoder_dim_dis = trial.suggest_categorical("encoder_dim_dis", ["64, 128", "128, 256", "256, 512"])
 
     # Paths to scripts
     main_script = os.path.join("baselines", "codi", "main.py")
@@ -82,7 +95,7 @@ def objective(trial, dataname):
     evaluate_cmd = [
         "python", evaluate_script,
         "--dataname", dataname,
-        "--model", "diffusion",
+        "--model", "codi",
         "--path", synthetic_data_path,
     ]
 
@@ -110,21 +123,31 @@ def objective(trial, dataname):
 
 # Main function
 def main(args):
+    
+    date = datetime.now().strftime("%Y-%m-%d_%H-%M") 
+    date_str = date.replace("-", "_")
+    
     study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
-
+    
     # Save results
     optuna_results_dir = os.path.join(current_dir, "optuna_results")
     os.makedirs(optuna_results_dir, exist_ok=True)
-    study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, "trials.csv"))
+    study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, f"trials_{date_str}.csv"))
 
     # Write results to a text file
-    with open(os.path.join(optuna_results_dir, "results.txt"), "w") as f:
+    with open(os.path.join(optuna_results_dir, f"results_{date_str}.txt"), "w") as f:
         f.write(f"Best hyperparameters: {study.best_params}\n")
         f.write(f"Best score: {study.best_value}\n")
 
     print("Best hyperparameters:", study.best_params)
     print("Best score:", study.best_value)
+
+    # Ejecutar con los mejores parámetros encontrados por Optuna
+    print("\nEjecutando con los mejores parámetros encontrados por Optuna...")
+    best_params = study.best_params
+    objective(None, args.dataname, best_params=best_params)
+    
 
 # Entry point
 if __name__ == "__main__":

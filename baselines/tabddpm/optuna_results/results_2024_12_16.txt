@@ -1,0 +1,2 @@
+Best hyperparameters: {'steps': 35, 'lr': 0.0017301522670274741, 'weight_decay': 3.1785983560924887e-06, 'batch_size': 48, 'num_timesteps': 1500, 'scheduler': 'cosine', 'd_layers': '1024, 2048, 2048, 1024'}
+Best score: -6.625813

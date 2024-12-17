@@ -24,6 +24,9 @@ parser.add_argument('--model', type=str, default='model', help='Name of the mode
 parser.add_argument('--path', type=str, default=None, help='Path of the synthetic data file')
 args = parser.parse_args()
 
+if args.path is None:
+    args.path = f'synthetic/{args.dataname}/{args.model}.csv'
+
 # Add parent directory to the system path for importing modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -180,6 +183,10 @@ def main():
 
     print(f'Alpha precision: {alpha_precision:.6f}, Beta recall: {beta_recall:.6f}')
     print(f"KLD: {kld:.6f}, HD: {hd:.6f}, MAEP: {maep:.6f}, RSVR: {rsvr:.6f}, PCD: {pcd:.6f}, LCM: {lcm:.6f}")
+    
+    objective_value = alpha_precision + beta_recall - 0.5 * kld
+    
+    print(f"Objective value: {objective_value:.6f}")
     
     # Save results
     save_dir = f'eval/quality/{dataname}'

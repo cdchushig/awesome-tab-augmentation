@@ -147,9 +147,8 @@ def sample(
     model_path =f'{model_save_path}/model.pt'
 
     model.load_state_dict(
-        torch.load(model_path, map_location="cpu")
+        torch.load(model_path, map_location="cpu", weights_only=True)
     )
-
 
     diffusion = GaussianMultinomialDiffusion(
         K,

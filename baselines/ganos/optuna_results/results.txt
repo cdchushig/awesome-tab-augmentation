@@ -1,0 +1,2 @@
+Best hyperparameters: {'num_epochs': 11200, 'batch_size': 128, 'lr': 1.717929214453933e-05, 'gp_weight': 8.0, 'd_updates_per_g': 2}
+Best score: 1.2940489999999998

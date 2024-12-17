@@ -1,5 +1,6 @@
 import os
 import argparse
+import json
 
 from baselines.tabddpm.train import train
 
@@ -19,6 +20,14 @@ def main(args):
     if not os.path.exists(model_save_path):
         os.makedirs(model_save_path)
     
+    info_path = f'{real_data_path}/info.json'
+    
+    with open(info_path, 'r') as f:
+        info = json.load(f)
+        
+    num_cols_idx = info['num_col_idx']
+    num_numerical_features = len(num_cols_idx)
+
     args.train = True
     #raw_config = src.load_config(config_path)
 
@@ -52,7 +61,7 @@ def main(args):
         "num_classes": 2,
         "is_y_cond": False,
         "rtdl_params": {
-            "d_layers": [1024, 2048, 2048, 1024],
+            "d_layers": tuple(map(int, args.d_layers.split(','))),
             "dropout": 0.0,
         }
     }
@@ -67,7 +76,6 @@ def main(args):
     num_timesteps = args.num_timesteps
     gaussian_loss_type = args.gaussian_loss_type
     scheduler = args.scheduler
-    num_numerical_features = args.num_numerical_features
 
     train(
         model_save_path=model_save_path,
@@ -87,6 +95,8 @@ def main(args):
         device=device,
     )
     
+    print('Model saved to: ', model_save_path)
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', metavar='FILE')
@@ -104,6 +114,9 @@ if __name__ == '__main__':
     parser.add_argument('--num_timesteps', type = int, default = 1000)
     parser.add_argument('--gaussian_loss_type', type = str, default = 'mse')
     parser.add_argument('--scheduler', type = str, default = 'linear')
-    parser.add_argument('--num_numerical_features', type = int, default = 6)
+    
+    parser.add_argument('--d_layers', default ="1024, 2048, 2048, 1024")
 
     args = parser.parse_args()
+    
+    main(args)

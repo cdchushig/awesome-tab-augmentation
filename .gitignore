@@ -18,8 +18,8 @@ __pycache__/
 
 **/logs/
 
-!papers_datasets_data_augment/*.pdf
 *.pdf
+!papers/*.pdf
 *.png
 
 *.pkl
@@ -29,3 +29,7 @@ __pycache__/
 *.bkp
 .pth
 *.pth
+
+*.statedict
+
+**/optuna__results/

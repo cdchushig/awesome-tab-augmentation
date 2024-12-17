@@ -7,6 +7,7 @@ import argparse
 import warnings
 import time
 from tqdm import tqdm  # For progress bars
+import ast
 
 from baselines.codi.diffusion_continuous import GaussianDiffusionTrainer, GaussianDiffusionSampler
 import baselines.codi.tabular_dataload as tabular_dataload
@@ -28,7 +29,25 @@ def main(args):
     curr_dir = os.path.dirname(os.path.abspath(__file__))
     ckpt_dir = os.path.join(curr_dir, 'ckpt', dataname)
     os.makedirs(ckpt_dir, exist_ok=True)
-
+    
+    """    if args.params == "best_params":
+        optuna_results_path = os.path.join(curr_dir, 'optuna_results', dataname)
+        
+        with open(f'{optuna_results_path}/results.txt', 'r') as f:
+            lines = text.split("\n")
+            params_text = lines[0].split(":", 1)[1].strip() 
+            best_params = ast.literal_eval(params_text)
+                        
+            args.training_batch_size = best_params['training_batch_size']
+            args.total_epochs_both = best_params['total_epochs_both']
+            args.lr_con = best_params['lr_con']
+            args.lr_dis = best_params['lr_dis']
+            args.beta_1 = best_params['beta_1']
+            args.beta_T = best_params['beta_T']
+            args.T = best_params['T']
+            args.encoder_dim_con = best_params['encoder_dim_con']
+            args.encoder_dim_dis = best_params['encoder_dim_dis']
+    """            
     # Load dataset and preprocess
     with open(f'{dataset_dir}/info.json', 'r') as f:
         task_type = json.load(f)['task_type']

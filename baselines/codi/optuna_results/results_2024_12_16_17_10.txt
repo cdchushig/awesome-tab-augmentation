@@ -1,0 +1,2 @@
+Best hyperparameters: {'training_batch_size': 640, 'total_epochs_both': 10000, 'lr_con': 0.0009728678991039792, 'lr_dis': 0.00018807771548555674, 'beta_1': 0.00030314276747848577, 'beta_T': 0.09803374480957885, 'T': 1500, 'encoder_dim_con': '64, 128', 'encoder_dim_dis': '256, 512'}
+Best score: 1.213401
