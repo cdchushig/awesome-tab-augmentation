@@ -5,9 +5,9 @@ import torch.nn as nn
 import argparse
 import warnings
 
-from tabsyn.model import MLPDiffusion, Model
-from tabsyn.latent_utils import get_input_generate, recover_data, split_num_cat_target
-from tabsyn.vae.model import Model_VAE, Encoder_model, Decoder_model
+from gen_models.tabsyn.model import MLPDiffusion, Model
+from gen_models.tabsyn.latent_utils import get_input_generate, recover_data, split_num_cat_target
+from gen_models.tabsyn.vae.model import Model_VAE, Encoder_model, Decoder_model
 import json
 import sys
 from utils_train import preprocess, TabularDataset
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     
     task_type = info['task_type']
 
-    ckpt_dir = f'tabsyn/vae/ckpt/{dataname}' 
+    ckpt_dir = f'gen_models.tabsyn/vae/ckpt/{dataname}' 
     model_save_path = f'{ckpt_dir}/model.pt'
     encoder_save_path = f'{ckpt_dir}/encoder.pt'
     decoder_save_path = f'{ckpt_dir}/decoder.pt'
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
         x = pre_encoder(X_test_num, X_test_cat).detach().cpu().numpy()
 
-        embedding_save_path = f'tabsyn/vae/ckpt/{dataname}/train_z.npy'
+        embedding_save_path = f'gen_models.tabsyn/vae/ckpt/{dataname}/train_z.npy'
         train_z = torch.tensor(np.load(embedding_save_path)).float()
         train_z = train_z[:, 1:, :]
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         denoise_fn = MLPDiffusion(in_dim, 1024).to(device)
         model = Model(denoise_fn = denoise_fn, hid_dim = train_z.shape[1]).to(device)
 
-        model.load_state_dict(torch.load(f'tabsyn/ckpt/{dataname}/model.pt'))
+        model.load_state_dict(torch.load(f'gen_models.tabsyn/ckpt/{dataname}/model.pt'))
 
         # Define the masking area
 

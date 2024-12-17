@@ -9,18 +9,18 @@ def execute_function(method, mode):
         
     if method == 'vae':
         mode = 'train'
-        module_name = f"tabsyn.vae.main"
+        module_name = f"gen_models.tabsyn.vae.main"
     elif method == 'tabsyn':
-        module_name = f"tabsyn.{mode}"
+        module_name = f"gen_models.tabsyn.{mode}"
     elif method == 'tabddpm':
         if mode == 'train' or mode == 'main':
-            module_name = f"baselines.tabddpm.main_train"
+            module_name = f"gen_models.tabddpm.main_train"
         elif mode == 'sample':
-            module_name = f"baselines.tabddpm.main_sample"
+            module_name = f"gen_models.tabddpm.main_sample"
         else:
-            module_name = f"baselines.tabddpm.{mode}"
+            module_name = f"gen_models.tabddpm.{mode}"
     else:
-        module_name = f"baselines.{method}.{mode}"
+        module_name = f"gen_models.{method}.{mode}"
 
     try:
         print(f"Importing module: {module_name}")
@@ -55,7 +55,7 @@ def get_args():
     ''' configs for CTGAN '''
     parser.add_argument('--model_path', type=str, default=None, help='Path to trained model')
 
-    parser.add_argument("--n_trials", type=int, default=25, help="Number of trials for Optuna")
+    parser.add_argument("--n_trials", type=int, default=50, help="Number of trials for Optuna")
 
     parser.add_argument('--no-header', dest='header', action='store_false',
                         help='The CSV file has no header. Discrete columns will be indices.')
