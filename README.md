@@ -2,6 +2,20 @@
 
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)
 
+
+## Important 
+
+This README.md will be modified within this branch to complete the following tasks:
+
+- **Task 1**: Execution of models  
+- **Task 2**: Checking hyperparameters  
+- **Task 3**: Saving paths for the generated information  
+
+Please refer to the main branch for any questions regarding this project.  
+
+Additionally, MLflow traces will be implemented to track the hyperparameters of the conducted experiments.
+
+
 A curated list of paper, methods and libraries implemented in Python for transforming tabular data into images.
 
 ## Contents
