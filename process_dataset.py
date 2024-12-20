@@ -350,6 +350,3 @@ if __name__ == "__main__":
         for name in ['thoracic_surgery', 'diabetes', 'retinopathy', 'heart']:
             print(f'Processing {name}...')
             process_data(name)
-
-        
-

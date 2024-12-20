@@ -28,16 +28,16 @@ def objective(trial, dataname, best_params=None):
         encoder_dim_dis = best_params["encoder_dim_dis"]
     else:
         # Suggest hyperparameters to tune
-        training_batch_size = trial.suggest_int("training_batch_size", 128, 1024, step=64)
-        total_epochs_both = trial.suggest_int("total_epochs_both", 10000, 40000, step=10000)
-        lr_con = trial.suggest_float("lr_con", 1e-5, 1e-3, log=True)
-        lr_dis = trial.suggest_float("lr_dis", 1e-5, 1e-3, log=True)
+        training_batch_size = trial.suggest_int("training_batch_size", 128, 256, step=128)
+        total_epochs_both = trial.suggest_int("total_epochs_both", 20000, 30000, step=10000)
+        lr_con = trial.suggest_float("lr_con", 1e-4, 1e-3, log=True)
+        lr_dis = trial.suggest_float("lr_dis", 1e-5, 1e-4, log=True)
         beta_1 = trial.suggest_float("beta_1", 0.0001, 0.001, log=True)
-        beta_T = trial.suggest_float("beta_T", 0.01, 0.1, log=True)
-        T = trial.suggest_int("T", 500, 2000, step=100)
+        beta_T = trial.suggest_float("beta_T", 0.005, 0.1, log=True)
+        T = trial.suggest_int("T", 800, 1600, step=200)
         
-        encoder_dim_con = trial.suggest_categorical("encoder_dim_con", ["64, 128", "128, 256", "256, 512"])
-        encoder_dim_dis = trial.suggest_categorical("encoder_dim_dis", ["64, 128", "128, 256", "256, 512"])
+        encoder_dim_con = trial.suggest_categorical("encoder_dim_con", ["128, 256", "256, 512"])
+        encoder_dim_dis = trial.suggest_categorical("encoder_dim_dis", ["128, 256", "256, 512"])
 
     # Paths to scripts
     main_script = os.path.join("gen_models", "codi", "main.py")
@@ -127,7 +127,10 @@ def main(args):
     date = datetime.now().strftime("%Y-%m-%d_%H-%M") 
     date_str = date.replace("-", "_")
     
-    study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
+    optuna_results_dataset_path = os.path.join(current_dir, "optuna_results", f"codi_{args.dataname}")
+    os.makedirs(optuna_results_dataset_path, exist_ok=True)
+    
+    study = optuna.create_study(direction="maximize", study_name=f"codi_{args.dataname}", storage=f"sqlite:///{optuna_results_dataset_path}/{date_str}.db", load_if_exists=True)
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
     
     # Save results

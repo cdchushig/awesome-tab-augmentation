@@ -115,8 +115,11 @@ def main(args):
     
     date = datetime.now().strftime("%Y-%m-%d_%H-%M") 
     date_str = date.replace("-", "_")
+
+    optuna_results_dataset_path = os.path.join(current_dir, "optuna_results", f"ctgan_{args.dataname}")
+    os.makedirs(optuna_results_dataset_path, exist_ok=True)
     
-    study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
+    study = optuna.create_study(direction="maximize", study_name=f"ctgan_{args.dataname}", storage=f"sqlite:///{optuna_results_dataset_path}/{date_str}.db", load_if_exists=True)
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
 
     # Save results

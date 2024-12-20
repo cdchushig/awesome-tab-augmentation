@@ -1,0 +1,2 @@
+,number,value,datetime_start,datetime_complete,duration,params_T,params_beta_1,params_beta_T,params_encoder_dim_con,params_encoder_dim_dis,params_lr_con,params_lr_dis,params_total_epochs_both,params_training_batch_size,state
+0,0,-0.39021949999999994,2024-12-17 17:51:04.804138,2024-12-17 18:06:14.226616,0 days 00:15:09.422478,1900,0.00027265452815423817,0.024183879960925594,"64, 128","256, 512",3.735911467006857e-05,0.0006690570977648202,40000,192,COMPLETE

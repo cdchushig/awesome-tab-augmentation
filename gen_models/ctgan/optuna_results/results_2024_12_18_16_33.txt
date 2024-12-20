@@ -1,0 +1,2 @@
+Best hyperparameters: {'embedding_dim': 448, 'generator_dim': '128,128', 'discriminator_dim': '128,256,128', 'batch_size': 160, 'epochs': 18, 'learning_rate': 0.0006399008456691101}
+Best score: 0.7842795

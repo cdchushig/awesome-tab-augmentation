@@ -146,14 +146,15 @@ def main(args):
     date = datetime.now().strftime("%Y-%m-%d_%H-%M") 
     date_str = date.replace("-", "_")
     
-    study = optuna.create_study(direction="maximize")  # Assuming higher quality is better
+    optuna_results_dataset_path = os.path.join(current_dir, "optuna_results", f"tabsyn_{args.dataname}")
+    os.makedirs(optuna_results_dataset_path, exist_ok=True)
+    
+    study = optuna.create_study(direction="maximize", study_name=f"tabsyn_{args.dataname}", storage=f"sqlite:///{optuna_results_dataset_path}/{date_str}.db", load_if_exists=True)
     study.optimize(lambda trial: objective(trial, args.dataname), n_trials=args.n_trials)
 
     # Save results
-    optuna_results_dir = os.path.join(current_dir, "optuna_results")
-    os.makedirs(optuna_results_dir, exist_ok=True)
     study.trials_dataframe().to_csv(os.path.join(optuna_results_dir, f"trials_{date_str}.csv"))
-
+    
     # Write results to a text file
     with open(os.path.join(optuna_results_dir, f"results_{date_str}.txt"), "w") as f:
         f.write(f"Best hyperparameters: {study.best_params}\n")

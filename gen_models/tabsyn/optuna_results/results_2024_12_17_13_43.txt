@@ -1,0 +1,2 @@
+Best hyperparameters: {'max_beta': 0.008132709272804104, 'min_beta': 0.0006691893938675616, 'lambd': 0.6046301508283891, 'vae_lr': 0.00027525327333091746, 'wd': 2.9806215231449348e-05, 'batch_size': 256, 'vae_epochs': 2000, 'num_epochs': 8000, 'tabsyn_lr': 0.007012080878777899, 'latent_dim': 128}
+Best score: 1.3044620000000002
